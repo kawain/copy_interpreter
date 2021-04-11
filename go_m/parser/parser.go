@@ -80,8 +80,8 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
-	// case token.RETURN:
-	// 	return p.parseReturnStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 		// return p.parseExpressionStatement()
@@ -137,4 +137,18 @@ func (p *Parser) Errors() []string {
 func (p *Parser) peekError(t string) {
 	msg := fmt.Sprintf("次のトークンは %s であるべきですが %s でした", t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.curToken}
+
+	p.nextToken()
+
+	// stmt.ReturnValue = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
 }

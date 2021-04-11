@@ -1,3 +1,4 @@
+// go test -run TestReturnStatements ./parser -v
 package parser
 
 import (
@@ -18,6 +19,24 @@ func checkParserErrors(t *testing.T, p *Parser) {
 		t.Errorf("parser error: %q", msg)
 	}
 	t.FailNow()
+}
+
+func TestReturnStatements(t *testing.T) {
+	input := `
+return 5;
+return 10;
+return 99332;
+	`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	for i := range program.Statements {
+		fmt.Printf("%+v\n", program.Statements[i])
+	}
 }
 
 func TestLetStatements(t *testing.T) {
