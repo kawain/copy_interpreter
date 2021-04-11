@@ -9,6 +9,22 @@ import (
 	"github.com/kawain/copy_interpreter/go_m/token"
 )
 
+const (
+	_ int = iota
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // > or <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -X or !X
+	CALL        // myFunction(X)
+)
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
+
 type Parser struct {
 	l      *lexer.Lexer
 	errors []string
@@ -16,8 +32,8 @@ type Parser struct {
 	curToken  token.Token
 	peekToken token.Token
 
-	// prefixParseFns map[token.TokenType]prefixParseFn
-	// infixParseFns  map[token.TokenType]infixParseFn
+	prefixParseFns map[string]prefixParseFn
+	infixParseFns  map[string]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -26,8 +42,8 @@ func New(l *lexer.Lexer) *Parser {
 		errors: []string{},
 	}
 
-	// p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
-	// p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.prefixParseFns = make(map[string]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	// p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	// p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	// p.registerPrefix(token.MINUS, p.parsePrefixExpression)
@@ -37,7 +53,7 @@ func New(l *lexer.Lexer) *Parser {
 	// p.registerPrefix(token.IF, p.parseIfExpression)
 	// p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 
-	// p.infixParseFns = make(map[token.TokenType]infixParseFn)
+	// p.infixParseFns = make(map[string]infixParseFn)
 	// p.registerInfix(token.PLUS, p.parseInfixExpression)
 	// p.registerInfix(token.MINUS, p.parseInfixExpression)
 	// p.registerInfix(token.SLASH, p.parseInfixExpression)
@@ -83,8 +99,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
-		// return p.parseExpressionStatement()
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -151,4 +166,50 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) registerPrefix(tokenType string, fn prefixParseFn) {
+	p.prefixParseFns[tokenType] = fn
+}
+
+func (p *Parser) registerInfix(tokenType string, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		// p.noPrefixParseFnError(p.curToken.Type)
+		return nil
+	}
+	leftExp := prefix()
+
+	// for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+	// 	infix := p.infixParseFns[p.peekToken.Type]
+	// 	if infix == nil {
+	// 		return leftExp
+	// 	}
+
+	// 	p.nextToken()
+
+	// 	leftExp = infix(leftExp)
+	// }
+
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }

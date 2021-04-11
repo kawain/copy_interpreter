@@ -21,6 +21,19 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.FailNow()
 }
 
+func TestIdentifierExpression(t *testing.T) {
+	input := "foobar;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	for i := range program.Statements {
+		fmt.Printf("%+v\n", program.Statements[i])
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	input := `
 return 5;
