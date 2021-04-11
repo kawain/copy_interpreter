@@ -19,8 +19,41 @@ proc checkParserErrors(l: Lexer, p: Parser): bool =
 
 suite "parser_test":
 
+
+  test "test3":
+    let input = """
+foobar;
+    """
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo ExpressionStatement(v).tokenLiteral()
+      echo Identifier(ExpressionStatement(v).expression).token[]
+      echo Identifier(ExpressionStatement(v).expression).value
+      echo "-".repeat(20)
+
+
   test "test2":
-    discard
+    let input = """
+return 5;
+return 10;
+return add(15);
+    """
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo ReturnStatement(v).tokenLiteral()
+      echo ReturnStatement(v).token.tokenType
+      echo "-".repeat(20)
+
 
 
   test "test1":

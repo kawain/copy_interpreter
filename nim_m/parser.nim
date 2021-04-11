@@ -7,18 +7,18 @@ import ast
 
 
 type
-  # Priority = enum
-  #   LOWEST
-  #   EQUALS      # ==
-  #   LESSGREATER # > or <
-  #   SUM         # +
-  #   PRODUCT     # *
-  #   PREFIX      # -X or !X
-  #   CALL        # myFunction(X)
+  Priority = enum
+    LOWEST
+    EQUALS      # ==
+    LESSGREATER # > or <
+    SUM         # +
+    PRODUCT     # *
+    PREFIX      # -X or !X
+    CALL        # myFunction(X)
 
 
-  # prefixParseFn = proc(self: Parser): Expression
-  # infixParseFn = proc(self: Parser, e: Expression): Expression
+  prefixParseFn = proc(self: Parser): Expression
+  infixParseFn = proc(self: Parser, e: Expression): Expression
 
 
   Parser* = ref object
@@ -26,8 +26,8 @@ type
     errors: seq[string]
     curToken: Token
     peekToken: Token
-#     prefixParseFns: Table[TokenType, prefixParseFn]
-#     infixParseFns: Table[TokenType, infixParseFn]
+    prefixParseFns: Table[TokenType, prefixParseFn]
+    infixParseFns: Table[TokenType, infixParseFn]
 
 
 # var precedences = {
@@ -54,10 +54,10 @@ proc peekTokenIs(self: Parser, t: TokenType): bool
 proc expectPeek(self: Parser, t: TokenType): bool
 proc Errors*(self: Parser): seq[string]
 proc peekError(self: Parser, t: TokenType)
-# proc parseReturnStatement(self: Parser): Statement
-# proc parseExpressionStatement(self: Parser): Statement
-# proc parseExpression(self: Parser, precedence: Priority): Expression
-# proc parseIdentifier(self: Parser): Expression
+proc parseReturnStatement(self: Parser): Statement
+proc parseExpressionStatement(self: Parser): Statement
+proc parseExpression(self: Parser, precedence: Priority): Expression
+proc parseIdentifier(self: Parser): Expression
 # proc parseIntegerLiteral(self: Parser): Expression
 # proc noPrefixParseFnError(self: Parser, t: TokenType)
 # proc parsePrefixExpression(self: Parser): Expression
@@ -80,7 +80,7 @@ proc ParserNew(lex: Lexer): Parser =
   result.lex = lex
   result.errors = newSeq[string]()
 
-  # result.prefixParseFns[IDENT] = parseIdentifier
+  result.prefixParseFns[IDENT] = parseIdentifier
   # result.prefixParseFns[INT] = parseIntegerLiteral
   # result.prefixParseFns[BANG] = parsePrefixExpression
   # result.prefixParseFns[MINUS] = parsePrefixExpression
@@ -123,11 +123,10 @@ proc parseStatement(self: Parser): Statement =
   case self.curToken.tokenType
   of LET:
     return self.parseLetStatement()
-  # of RETURN:
-  #   return self.parseReturnStatement()
+  of RETURN:
+    return self.parseReturnStatement()
   else:
-    return nil
-    # return self.parseExpressionStatement()
+    return self.parseExpressionStatement()
 
 
 proc parseLetStatement(self: Parser): Statement =
@@ -177,55 +176,55 @@ proc peekError(self: Parser, t: TokenType) =
   self.errors.add(msg)
 
 
-# proc parseReturnStatement(self: Parser): Statement =
-#   let stmt = new ReturnStatement
-#   stmt.token = self.curToken
+proc parseReturnStatement(self: Parser): Statement =
+  let stmt = new ReturnStatement
+  stmt.token = self.curToken
 
-#   self.nextToken()
+  self.nextToken()
 
-#   stmt.returnValue = self.parseExpression(LOWEST)
+  # stmt.returnValue = self.parseExpression(LOWEST)
 
-#   if self.peekTokenIs(SEMICOLON):
-#     self.nextToken()
+  if self.peekTokenIs(SEMICOLON):
+    self.nextToken()
 
-#   return stmt
-
-
-# proc parseExpressionStatement(self: Parser): Statement =
-#   let stmt = new ExpressionStatement
-#   stmt.token = self.curToken
-
-#   stmt.expression = self.parseExpression(LOWEST)
-
-#   if self.peekTokenIs(SEMICOLON):
-#     self.nextToken()
-
-#   return stmt
+  return stmt
 
 
-# proc parseExpression(self: Parser, precedence: Priority): Expression =
-#   if not self.prefixParseFns.hasKey(self.curToken.tokenType):
-#     self.noPrefixParseFnError(self.curToken.tokenType)
-#     return nil
+proc parseExpressionStatement(self: Parser): Statement =
+  let stmt = new ExpressionStatement
+  stmt.token = self.curToken
 
-#   let prifix = self.prefixParseFns[self.curToken.tokenType]
+  stmt.expression = self.parseExpression(LOWEST)
 
-#   var leftExp = self.prifix()
+  if self.peekTokenIs(SEMICOLON):
+    self.nextToken()
 
-#   while not self.peekTokenIs(SEMICOLON) and precedence < self.peekPrecedence():
-#     let infix = self.infixParseFns[self.peekToken.tokenType]
-#     if infix == nil:
-#       return leftExp
-
-#     self.nextToken()
-
-#     leftExp = self.infix(leftExp)
-
-#   leftExp
+  return stmt
 
 
-# proc parseIdentifier(self: Parser): Expression =
-#   Identifier(token: self.curToken, value: self.curToken.literal)
+proc parseExpression(self: Parser, precedence: Priority): Expression =
+  if not self.prefixParseFns.hasKey(self.curToken.tokenType):
+    # self.noPrefixParseFnError(self.curToken.tokenType)
+    return nil
+
+  let prifix = self.prefixParseFns[self.curToken.tokenType]
+
+  var leftExp = self.prifix()
+
+  # while not self.peekTokenIs(SEMICOLON) and precedence < self.peekPrecedence():
+  #   let infix = self.infixParseFns[self.peekToken.tokenType]
+  #   if infix == nil:
+  #     return leftExp
+
+  #   self.nextToken()
+
+  #   leftExp = self.infix(leftExp)
+
+  leftExp
+
+
+proc parseIdentifier(self: Parser): Expression =
+  Identifier(token: self.curToken, value: self.curToken.literal)
 
 
 # proc parseIntegerLiteral(self: Parser): Expression =
