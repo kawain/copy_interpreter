@@ -171,27 +171,28 @@ class FloatLiteral(Expression):
         return "FloatLiteral(Expression)"
 
 
-# class PrefixExpression(Expression):
-#     def __init__(self, token=None, operator="", right=None):
-#         self.token = token
-#         self.operator = operator
-#         self.right = right
+class PrefixExpression(Expression):
+    def __init__(self, token=None, operator="", right=None):
+        self.token = token
+        # "-", "!" が来る
+        self.operator = operator
+        self.right = right
 
-#     def token_literal(self):
-#         return self.token.literal
+    def token_literal(self):
+        return self.token.literal
 
-#     def expression_node(self):
-#         pass
+    def expression_node(self):
+        pass
 
-#     def string(self):
-#         out = "("
-#         out += self.operator
-#         out += self.right.string()
-#         out += ")"
-#         return out
+    def string(self):
+        out = "("
+        out += self.operator
+        out += self.right.string()
+        out += ")"
+        return out
 
-#     def __str__(self):
-#         return "PrefixExpression(Expression)"
+    def __str__(self):
+        return "PrefixExpression(Expression)"
 
 
 # class InfixExpression(Expression):
