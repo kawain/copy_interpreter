@@ -2,12 +2,32 @@ from token_ import TokenType
 import ast_
 
 
+priority = {
+    "LOWEST": 1,
+    "EQUALS": 2,  # ==
+    "LESSGREATER": 3,  # > or <
+    "SUM": 4,  # +
+    "PRODUCT": 5,  # *
+    "PREFIX": 6,  # -X or !X
+    "CALL": 7,  # myFunction(X)
+}
+
+
 class Parser:
     def __init__(self, lex):
         self.lex = lex
         self.errors = []
         self.cur_token = None
         self.peek_token = None
+        # 前置構文解析関数
+        self.prefix_parse_fns = {}
+        # 中置構文解析関数
+        self.infix_parse_fns = {}
+
+        # 前置構文解析関数追加
+        self.prefix_parse_fns[TokenType.IDENT] = self.parse_identifier
+        self.prefix_parse_fns[TokenType.INT] = self.parse_integerLiteral_literal
+        self.prefix_parse_fns[TokenType.FLOAT] = self.parse_floatLiteral_literal
 
         self.next_token()
         self.next_token()
@@ -18,14 +38,11 @@ class Parser:
 
     def parse_program(self):
         program = ast_.Program()
-
         while self.cur_token.token_type != TokenType.EOF:
             stmt = self.parse_statement()
             if stmt is not None:
                 program.statements.append(stmt)
-
             self.next_token()
-
         return program
 
     def parse_statement(self):
@@ -34,8 +51,7 @@ class Parser:
         elif self.cur_token.token_type == TokenType.RETURN:
             return self.parse_return_statement()
         else:
-            return None
-            # return self.parse_expression_statement()
+            return self.parse_expression_statement()
 
     def parse_let_statement(self):
         stmt = ast_.LetStatement(token=self.cur_token)
@@ -86,52 +102,56 @@ class Parser:
         msg = f"期待 {t}、現実 {self.peek_token.token_type}"
         self.errors.append(msg)
 
-    # def register_prefix(self, token_type, fn):
-    #     self.prefix_parse_fns[token_type] = fn
+    def parse_expression_statement(self):
+        stmt = ast_.ExpressionStatement(token=self.cur_token)
 
-    # def register_infix(self, token_type, fn):
-    #     self.infix_parse_fns[token_type] = fn
+        stmt.expression = self.parse_expression(priority["LOWEST"])
 
-    # def parse_expression_statement(self):
-    #     stmt = ExpressionStatement(token=self.cur_token)
+        if self.peek_token_is(TokenType.SEMICOLON):
+            self.next_token()
 
-    #     stmt.expression = self.parse_expression(priority["LOWEST"])
+        return stmt
 
-    #     if self.peek_token_is(TokenType.SEMICOLON):
-    #         self.next_token()
+    def parse_expression(self, precedence):
+        prefix = self.prefix_parse_fns.get(self.cur_token.token_type)
+        if prefix is None:
+            # self.no_prefix_parse_fn_error(self.cur_token.token_type)
+            return None
 
-    #     return stmt
+        left_exp = prefix()
 
-    # def parse_expression(self, precedence):
-    #     prefix = self.prefix_parse_fns.get(self.cur_token.token_type)
-    #     if prefix is None:
-    #         self.no_prefix_parse_fn_error(self.cur_token.token_type)
-    #         return None
+        # while not self.peek_token_is(TokenType.SEMICOLON) and (precedence < self.peek_precedence()):
+        #     infix = self.infix_parse_fns.get(self.peek_token.token_type)
+        #     if infix is None:
+        #         return left_exp
 
-    #     left_exp = prefix()
+        #     self.next_token()
+        #     left_exp = infix(left_exp)
 
-    #     while not self.peek_token_is(TokenType.SEMICOLON) and (precedence < self.peek_precedence()):
-    #         infix = self.infix_parse_fns.get(self.peek_token.token_type)
-    #         if infix is None:
-    #             return left_exp
+        return left_exp
 
-    #         self.next_token()
-    #         left_exp = infix(left_exp)
+    def parse_identifier(self):
+        return ast_.Identifier(token=self.cur_token, value=self.cur_token.literal)
 
-    #     return left_exp
+    def parse_integerLiteral_literal(self):
+        obj = ast_.IntegerLiteral(token=self.cur_token)
+        try:
+            obj.value = int(self.cur_token.literal)
+        except Exception as e:
+            self.errors.append(f"{self.cur_token.literal}がintに変換できません {e}")
+            return None
 
-    # def parse_identifier(self):
-    #     return Identifier(token=self.cur_token, value=self.cur_token.literal)
+        return obj
 
-    # def parse_integer_literal(self):
-    #     lit = IntegerLiteral(token=self.cur_token)
-    #     try:
-    #         lit.value = int(self.cur_token.literal)
-    #     except Exception as e:
-    #         self.errors.append(f"{self.cur_token.literal}が数字に変換できません {e}")
-    #         return None
+    def parse_floatLiteral_literal(self):
+        obj = ast_.FloatLiteral(token=self.cur_token)
+        try:
+            obj.value = float(self.cur_token.literal)
+        except Exception as e:
+            self.errors.append(f"{self.cur_token.literal}がfloatに変換できません {e}")
+            return None
 
-    #     return lit
+        return obj
 
     # def no_prefix_parse_fn_error(self, t):
     #     msg = f"no prefix parse function for {t} found"

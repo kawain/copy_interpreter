@@ -131,22 +131,44 @@ class ExpressionStatement(Statement):
         return "ExpressionStatement(Statement)"
 
 
-# class IntegerLiteral(Expression):
-#     def __init__(self, token=None, value=None):
-#         self.token = token
-#         self.value = value
+class IntegerLiteral(Expression):
+    """整数"""
 
-#     def token_literal(self):
-#         return self.token.literal
+    def __init__(self, token=None, value=None):
+        self.token = token
+        self.value = value
 
-#     def expression_node(self):
-#         pass
+    def token_literal(self):
+        return self.token.literal
 
-#     def string(self):
-#         return self.token.literal
+    def expression_node(self):
+        pass
 
-#     def __str__(self):
-#         return "IntegerLiteral(Expression)"
+    def string(self):
+        return self.token.literal
+
+    def __str__(self):
+        return "IntegerLiteral(Expression)"
+
+
+class FloatLiteral(Expression):
+    """実数"""
+
+    def __init__(self, token=None, value=None):
+        self.token = token
+        self.value = value
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        return self.token.literal
+
+    def __str__(self):
+        return "FloatLiteral(Expression)"
 
 
 # class PrefixExpression(Expression):
