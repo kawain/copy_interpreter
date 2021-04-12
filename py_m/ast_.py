@@ -87,48 +87,48 @@ class Identifier(Expression):
         return "Identifier(Expression)"
 
 
-# class ReturnStatement(Statement):
-#     def __init__(self, token=None, return_value=None):
-#         self.token = token
-#         self.return_value = return_value
+class ReturnStatement(Statement):
+    def __init__(self, token=None, return_value=None):
+        self.token = token
+        self.return_value = return_value
 
-#     def token_literal(self):
-#         return self.token.literal
+    def token_literal(self):
+        return self.token.literal
 
-#     def statement_node(self):
-#         pass
+    def statement_node(self):
+        pass
 
-#     def string(self):
-#         out = self.token_literal()
-#         out += " "
-#         if self.return_value is not None:
-#             out += self.return_value.string()
-#         out += ";"
-#         return out
+    def string(self):
+        out = self.token_literal()
+        out += " "
+        if self.return_value is not None:
+            out += self.return_value.string()
+        out += ";"
+        return out
 
-#     def __str__(self):
-#         return "ReturnStatement(Statement)"
+    def __str__(self):
+        return "ReturnStatement(Statement)"
 
 
-# class ExpressionStatement(Statement):
-#     def __init__(self, token=None, expression=None):
-#         self.token = token
-#         self.expression = expression
+class ExpressionStatement(Statement):
+    def __init__(self, token=None, expression=None):
+        self.token = token
+        self.expression = expression
 
-#     def token_literal(self):
-#         return self.token.literal
+    def token_literal(self):
+        return self.token.literal
 
-#     def statement_node(self):
-#         pass
+    def statement_node(self):
+        pass
 
-#     def string(self):
-#         if self.expression is not None:
-#             return self.expression.string()
+    def string(self):
+        if self.expression is not None:
+            return self.expression.string()
 
-#         return ""
+        return ""
 
-#     def __str__(self):
-#         return "ExpressionStatement(Statement)"
+    def __str__(self):
+        return "ExpressionStatement(Statement)"
 
 
 # class IntegerLiteral(Expression):
@@ -200,4 +200,12 @@ class Identifier(Expression):
 
 
 if __name__ == "__main__":
-    pass
+    from token_ import Token, TokenType
+    ls = LetStatement(
+        token=Token(TokenType.LET, "let"),
+        name=Identifier(Token(TokenType.IDENT, "myVar"), "myVar"),
+        value=Identifier(Token(TokenType.IDENT, "anothorVal"), "anothorVal")
+    )
+    p = Program()
+    p.statements.append(ls)
+    print(p.string())

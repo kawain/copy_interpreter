@@ -56,17 +56,17 @@ class Parser:
 
         return stmt
 
-    # def parse_return_statement(self):
-    #     stmt = ReturnStatement(token=self.cur_token)
+    def parse_return_statement(self):
+        stmt = ast_.ReturnStatement(token=self.cur_token)
 
-    #     self.next_token()
+        self.next_token()
 
-    #     stmt.return_value = self.parse_expression(priority["LOWEST"])
+        # stmt.return_value = self.parse_expression(priority["LOWEST"])
 
-    #     if self.peek_token_is(TokenType.SEMICOLON):
-    #         self.next_token()
+        if self.peek_token_is(TokenType.SEMICOLON):
+            self.next_token()
 
-    #     return stmt
+        return stmt
 
     def expect_peek(self, t):
         if self.peek_token_is(t):
