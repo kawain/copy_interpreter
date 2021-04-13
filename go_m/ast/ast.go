@@ -40,11 +40,9 @@ func (p *Program) TokenLiteral() string {
 
 func (p *Program) String() string {
 	var out bytes.Buffer
-
 	for _, s := range p.Statements {
 		out.WriteString(s.String())
 	}
-
 	return out.String()
 }
 
@@ -58,17 +56,13 @@ func (ls *LetStatement) statementNode()       {}
 func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
 func (ls *LetStatement) String() string {
 	var out bytes.Buffer
-
 	out.WriteString(ls.TokenLiteral() + " ")
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
-
 	if ls.Value != nil {
 		out.WriteString(ls.Value.String())
 	}
-
 	out.WriteString(";")
-
 	return out.String()
 }
 
@@ -90,15 +84,11 @@ func (rs *ReturnStatement) statementNode()       {}
 func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
 func (rs *ReturnStatement) String() string {
 	var out bytes.Buffer
-
 	out.WriteString(rs.TokenLiteral() + " ")
-
 	if rs.ReturnValue != nil {
 		out.WriteString(rs.ReturnValue.String())
 	}
-
 	out.WriteString(";")
-
 	return out.String()
 }
 
@@ -138,6 +128,25 @@ func (pe *PrefixExpression) String() string {
 	out.WriteString("(")
 	out.WriteString(pe.Operator)
 	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+	return out.String()
+}
+
+type InfixExpression struct {
+	Token    token.Token // The operator token, e.g. +
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (oe *InfixExpression) expressionNode()      {}
+func (oe *InfixExpression) TokenLiteral() string { return oe.Token.Literal }
+func (oe *InfixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(oe.Left.String())
+	out.WriteString(" " + oe.Operator + " ")
+	out.WriteString(oe.Right.String())
 	out.WriteString(")")
 	return out.String()
 }
