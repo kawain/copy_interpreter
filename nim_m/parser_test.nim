@@ -20,6 +20,35 @@ proc checkParserErrors(l: Lexer, p: Parser): bool =
 suite "parser_test":
 
 
+  test "test4":
+    let input = """
+5;
+3.1415;
+    """
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo type(v)
+      echo type(ExpressionStatement(v))
+      echo type(ExpressionStatement(v).expression)
+      var v = ExpressionStatement(v).expression
+      # 継承が有効になっているオブジェクトには、実行時にタイプに関する情報が含まれているため、
+      # of演算子を使用してオブジェクトのタイプを判別できます。
+      if v of IntegerLiteral:
+        echo "IntegerLiteral"
+        echo IntegerLiteral(v).value
+      elif v of FloatLiteral:
+        echo "FloatLiteral"
+        echo FloatLiteral(v).value
+      else:
+        echo "NG"
+      echo "-".repeat(20)
+
+
   test "test3":
     let input = """
 foobar;

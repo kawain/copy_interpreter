@@ -58,7 +58,8 @@ proc parseReturnStatement(self: Parser): Statement
 proc parseExpressionStatement(self: Parser): Statement
 proc parseExpression(self: Parser, precedence: Priority): Expression
 proc parseIdentifier(self: Parser): Expression
-# proc parseIntegerLiteral(self: Parser): Expression
+proc parseIntegerLiteral(self: Parser): Expression
+proc parseFloatLiteral(self: Parser): Expression
 # proc noPrefixParseFnError(self: Parser, t: TokenType)
 # proc parsePrefixExpression(self: Parser): Expression
 # proc peekPrecedence(self: Parser): Priority
@@ -81,7 +82,8 @@ proc ParserNew(lex: Lexer): Parser =
   result.errors = newSeq[string]()
 
   result.prefixParseFns[IDENT] = parseIdentifier
-  # result.prefixParseFns[INT] = parseIntegerLiteral
+  result.prefixParseFns[INT] = parseIntegerLiteral
+  result.prefixParseFns[FLOAT] = parseFloatLiteral
   # result.prefixParseFns[BANG] = parsePrefixExpression
   # result.prefixParseFns[MINUS] = parsePrefixExpression
   # result.prefixParseFns[TRUE] = parseBoolean
@@ -227,10 +229,23 @@ proc parseIdentifier(self: Parser): Expression =
   Identifier(token: self.curToken, value: self.curToken.literal)
 
 
-# proc parseIntegerLiteral(self: Parser): Expression =
-#   let lit = IntegerLiteral(token: self.curToken)
-#   lit.value = self.curToken.literal.parseInt
-#   lit
+proc parseIntegerLiteral(self: Parser): Expression =
+  let lit = IntegerLiteral(token: self.curToken)
+  try:
+    lit.value = self.curToken.literal.parseInt
+  except:
+    self.errors.add(fmt"could not parse {self.curToken.literal} as integer.")
+    return nil
+  lit
+
+proc parseFloatLiteral(self: Parser): Expression =
+  let lit = FloatLiteral(token: self.curToken)
+  try:
+    lit.value = self.curToken.literal.parseFloat
+  except:
+    self.errors.add(fmt"could not parse {self.curToken.literal} as float.")
+    return nil
+  lit
 
 
 # proc noPrefixParseFnError(self: Parser, t: TokenType) =

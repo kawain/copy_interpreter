@@ -95,6 +95,17 @@ method toString*(self: IntegerLiteral): string =
   self.token.literal
 
 
+type FloatLiteral* = ref object of Expression
+  token*: Token
+  value*: float
+
+method tokenLiteral*(self: FloatLiteral): string =
+  self.token.literal
+
+method toString*(self: FloatLiteral): string =
+  self.token.literal
+
+
 type PrefixExpression* = ref object of Expression
   token*: Token
   operator*: string
