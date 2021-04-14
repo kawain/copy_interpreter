@@ -14,6 +14,18 @@ priority = {
 
 
 class Parser:
+    precedences = {
+        TokenType.EQ: priority["EQUALS"],
+        TokenType.NOT_EQ: priority["EQUALS"],
+        TokenType.LT: priority["LESSGREATER"],
+        TokenType.GT: priority["LESSGREATER"],
+        TokenType.PLUS: priority["SUM"],
+        TokenType.MINUS: priority["SUM"],
+        TokenType.SLASH: priority["PRODUCT"],
+        TokenType.ASTERISK: priority["PRODUCT"],
+        TokenType.LPAREN: priority["CALL"],
+    }
+
     def __init__(self, lex):
         self.lex = lex
         self.errors = []
@@ -30,6 +42,15 @@ class Parser:
         self.prefix_parse_fns[TokenType.FLOAT] = self.parse_floatLiteral_literal
         self.prefix_parse_fns[TokenType.BANG] = self.parse_prefix_expression
         self.prefix_parse_fns[TokenType.MINUS] = self.parse_prefix_expression
+        # 中置構文解析関数追加
+        self.infix_parse_fns[TokenType.PLUS] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.MINUS] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.SLASH] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.ASTERISK] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.EQ] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.NOT_EQ] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.LT] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.GT] = self.parse_infix_expression
 
         self.next_token()
         self.next_token()
@@ -122,13 +143,13 @@ class Parser:
 
         left_exp = prefix()
 
-        # while not self.peek_token_is(TokenType.SEMICOLON) and (precedence < self.peek_precedence()):
-        #     infix = self.infix_parse_fns.get(self.peek_token.token_type)
-        #     if infix is None:
-        #         return left_exp
+        while not self.peek_token_is(TokenType.SEMICOLON) and (precedence < self.peek_precedence()):
+            infix = self.infix_parse_fns.get(self.peek_token.token_type)
+            if infix is None:
+                return left_exp
 
-        #     self.next_token()
-        #     left_exp = infix(left_exp)
+            self.next_token()
+            left_exp = infix(left_exp)
 
         return left_exp
 
@@ -168,28 +189,28 @@ class Parser:
         expression.right = self.parse_expression(priority["PREFIX"])
         return expression
 
-    # def peek_precedence(self):
-    #     p = Parser.precedences.get(self.peek_token.token_type)
-    #     if p:
-    #         return p
-    #     return priority["LOWEST"]
+    def peek_precedence(self):
+        p = Parser.precedences.get(self.peek_token.token_type)
+        if p:
+            return p
+        return priority["LOWEST"]
 
-    # def cur_precedence(self):
-    #     p = Parser.precedences.get(self.cur_token.token_type)
-    #     if p:
-    #         return p
-    #     return priority["LOWEST"]
+    def cur_precedence(self):
+        p = Parser.precedences.get(self.cur_token.token_type)
+        if p:
+            return p
+        return priority["LOWEST"]
 
-    # def parse_infix_expression(self, left):
-    #     expression = InfixExpression(
-    #         token=self.cur_token,
-    #         operator=self.cur_token.literal,
-    #         left=left
-    #     )
-    #     precedence = self.cur_precedence()
-    #     self.next_token()
-    #     expression.right = self.parse_expression(precedence)
-    #     return expression
+    def parse_infix_expression(self, left):
+        expression = ast_.InfixExpression(
+            token=self.cur_token,
+            operator=self.cur_token.literal,
+            left=left
+        )
+        precedence = self.cur_precedence()
+        self.next_token()
+        expression.right = self.parse_expression(precedence)
+        return expression
 
     def Errors(self):
         return self.errors

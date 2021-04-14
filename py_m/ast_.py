@@ -195,31 +195,31 @@ class PrefixExpression(Expression):
         return "PrefixExpression(Expression)"
 
 
-# class InfixExpression(Expression):
-#     def __init__(self, token=None, left=None, operator="", right=None):
-#         self.token = token
-#         self.left = left
-#         self.operator = operator
-#         self.right = right
+class InfixExpression(Expression):
+    def __init__(self, token=None, left=None, operator="", right=None):
+        self.token = token
+        self.left = left
+        self.operator = operator
+        self.right = right
 
-#     def token_literal(self):
-#         return self.token.literal
+    def token_literal(self):
+        return self.token.literal
 
-#     def expression_node(self):
-#         pass
+    def expression_node(self):
+        pass
 
-#     def string(self):
-#         out = "("
-#         out += self.left.string()
-#         out += " "
-#         out += self.operator
-#         out += " "
-#         out += self.right.string()
-#         out += ")"
-#         return out
+    def string(self):
+        out = "("
+        out += self.left.string()
+        out += " "
+        out += self.operator
+        out += " "
+        out += self.right.string()
+        out += ")"
+        return out
 
-#     def __str__(self):
-#         return "InfixExpression(Expression)"
+    def __str__(self):
+        return "InfixExpression(Expression)"
 
 
 if __name__ == "__main__":
