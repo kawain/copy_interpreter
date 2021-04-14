@@ -30,17 +30,17 @@ type
     infixParseFns: Table[TokenType, infixParseFn]
 
 
-# var precedences = {
-#   EQ: EQUALS,
-#   NOT_EQ: EQUALS,
-#   LT: LESSGREATER,
-#   GT: LESSGREATER,
-#   PLUS: SUM,
-#   MINUS: SUM,
-#   SLASH: PRODUCT,
-#   ASTERISK: PRODUCT,
-#   LPAREN: CALL,
-# }.toTable
+var precedences = {
+  EQ: EQUALS,
+  NOT_EQ: EQUALS,
+  LT: LESSGREATER,
+  GT: LESSGREATER,
+  PLUS: SUM,
+  MINUS: SUM,
+  SLASH: PRODUCT,
+  ASTERISK: PRODUCT,
+  LPAREN: CALL,
+}.toTable
 
 
 # 関数のプロトタイプ宣言
@@ -62,9 +62,9 @@ proc parseIntegerLiteral(self: Parser): Expression
 proc parseFloatLiteral(self: Parser): Expression
 proc noPrefixParseFnError(self: Parser, t: TokenType)
 proc parsePrefixExpression(self: Parser): Expression
-# proc peekPrecedence(self: Parser): Priority
-# proc curPrecedence(self: Parser): Priority
-# proc parseInfixExpression(self: Parser, left: Expression): Expression
+proc peekPrecedence(self: Parser): Priority
+proc curPrecedence(self: Parser): Priority
+proc parseInfixExpression(self: Parser, left: Expression): Expression
 # proc parseBoolean(self: Parser): Expression
 # proc parseGroupedExpression(self: Parser): Expression
 # proc parseIfExpression(self: Parser): Expression
@@ -92,14 +92,14 @@ proc ParserNew(lex: Lexer): Parser =
   # result.prefixParseFns[IF] = parseIfExpression
   # result.prefixParseFns[FUNCTION] = parseFunctionLiteral
 
-  # result.infixParseFns[PLUS] = parseInfixExpression
-  # result.infixParseFns[MINUS] = parseInfixExpression
-  # result.infixParseFns[SLASH] = parseInfixExpression
-  # result.infixParseFns[ASTERISK] = parseInfixExpression
-  # result.infixParseFns[EQ] = parseInfixExpression
-  # result.infixParseFns[NOT_EQ] = parseInfixExpression
-  # result.infixParseFns[LT] = parseInfixExpression
-  # result.infixParseFns[GT] = parseInfixExpression
+  result.infixParseFns[PLUS] = parseInfixExpression
+  result.infixParseFns[MINUS] = parseInfixExpression
+  result.infixParseFns[SLASH] = parseInfixExpression
+  result.infixParseFns[ASTERISK] = parseInfixExpression
+  result.infixParseFns[EQ] = parseInfixExpression
+  result.infixParseFns[NOT_EQ] = parseInfixExpression
+  result.infixParseFns[LT] = parseInfixExpression
+  result.infixParseFns[GT] = parseInfixExpression
 
   # result.infixParseFns[LPAREN] = parseCallExpression
 
@@ -210,17 +210,14 @@ proc parseExpression(self: Parser, precedence: Priority): Expression =
     return nil
 
   let prifix = self.prefixParseFns[self.curToken.tokenType]
-
   var leftExp = self.prifix()
 
-  # while not self.peekTokenIs(SEMICOLON) and precedence < self.peekPrecedence():
-  #   let infix = self.infixParseFns[self.peekToken.tokenType]
-  #   if infix == nil:
-  #     return leftExp
-
-  #   self.nextToken()
-
-  #   leftExp = self.infix(leftExp)
+  while not self.peekTokenIs(SEMICOLON) and precedence < self.peekPrecedence():
+    let infix = self.infixParseFns[self.peekToken.tokenType]
+    if infix == nil:
+      return leftExp
+    self.nextToken()
+    leftExp = self.infix(leftExp)
 
   leftExp
 
@@ -263,28 +260,28 @@ proc parsePrefixExpression(self: Parser): Expression =
   expression
 
 
-# proc peekPrecedence(self: Parser): Priority =
-#   if precedences.hasKey(self.peekToken.tokenType):
-#     return precedences[self.peekToken.tokenType]
-#   LOWEST
+proc peekPrecedence(self: Parser): Priority =
+  if precedences.hasKey(self.peekToken.tokenType):
+    return precedences[self.peekToken.tokenType]
+  LOWEST
 
 
-# proc curPrecedence(self: Parser): Priority =
-#   if precedences.hasKey(self.curToken.tokenType):
-#     return precedences[self.curToken.tokenType]
-#   LOWEST
+proc curPrecedence(self: Parser): Priority =
+  if precedences.hasKey(self.curToken.tokenType):
+    return precedences[self.curToken.tokenType]
+  LOWEST
 
 
-# proc parseInfixExpression(self: Parser, left: Expression): Expression =
-#   let expression = InfixExpression(
-#     token: self.curToken,
-#     operator: self.curToken.literal,
-#     left: left,
-#   )
-#   let precedence = self.curPrecedence()
-#   self.nextToken()
-#   expression.right = self.parseExpression(precedence)
-#   expression
+proc parseInfixExpression(self: Parser, left: Expression): Expression =
+  let expression = InfixExpression(
+    token: self.curToken,
+    operator: self.curToken.literal,
+    left: left,
+  )
+  let precedence = self.curPrecedence()
+  self.nextToken()
+  expression.right = self.parseExpression(precedence)
+  expression
 
 
 # proc parseBoolean(self: Parser): Expression =
