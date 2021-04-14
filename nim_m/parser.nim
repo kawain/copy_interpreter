@@ -60,8 +60,8 @@ proc parseExpression(self: Parser, precedence: Priority): Expression
 proc parseIdentifier(self: Parser): Expression
 proc parseIntegerLiteral(self: Parser): Expression
 proc parseFloatLiteral(self: Parser): Expression
-# proc noPrefixParseFnError(self: Parser, t: TokenType)
-# proc parsePrefixExpression(self: Parser): Expression
+proc noPrefixParseFnError(self: Parser, t: TokenType)
+proc parsePrefixExpression(self: Parser): Expression
 # proc peekPrecedence(self: Parser): Priority
 # proc curPrecedence(self: Parser): Priority
 # proc parseInfixExpression(self: Parser, left: Expression): Expression
@@ -84,8 +84,8 @@ proc ParserNew(lex: Lexer): Parser =
   result.prefixParseFns[IDENT] = parseIdentifier
   result.prefixParseFns[INT] = parseIntegerLiteral
   result.prefixParseFns[FLOAT] = parseFloatLiteral
-  # result.prefixParseFns[BANG] = parsePrefixExpression
-  # result.prefixParseFns[MINUS] = parsePrefixExpression
+  result.prefixParseFns[BANG] = parsePrefixExpression
+  result.prefixParseFns[MINUS] = parsePrefixExpression
   # result.prefixParseFns[TRUE] = parseBoolean
   # result.prefixParseFns[FALSE] = parseBoolean
   # result.prefixParseFns[LPAREN] = parseGroupedExpression
@@ -206,7 +206,7 @@ proc parseExpressionStatement(self: Parser): Statement =
 
 proc parseExpression(self: Parser, precedence: Priority): Expression =
   if not self.prefixParseFns.hasKey(self.curToken.tokenType):
-    # self.noPrefixParseFnError(self.curToken.tokenType)
+    self.noPrefixParseFnError(self.curToken.tokenType)
     return nil
 
   let prifix = self.prefixParseFns[self.curToken.tokenType]
@@ -248,19 +248,19 @@ proc parseFloatLiteral(self: Parser): Expression =
   lit
 
 
-# proc noPrefixParseFnError(self: Parser, t: TokenType) =
-#   let msg = fmt"no prefix parse function for {t} found"
-#   self.errors.add(msg)
+proc noPrefixParseFnError(self: Parser, t: TokenType) =
+  let msg = fmt"no prefix parse function for {t} found"
+  self.errors.add(msg)
 
 
-# proc parsePrefixExpression(self: Parser): Expression =
-#   let expression = PrefixExpression(
-#     token: self.curToken,
-#     operator: self.curToken.literal,
-#   )
-#   self.nextToken()
-#   expression.right = self.parseExpression(PREFIX)
-#   expression
+proc parsePrefixExpression(self: Parser): Expression =
+  let expression = PrefixExpression(
+    token: self.curToken,
+    operator: self.curToken.literal,
+  )
+  self.nextToken()
+  expression.right = self.parseExpression(PREFIX)
+  expression
 
 
 # proc peekPrecedence(self: Parser): Priority =

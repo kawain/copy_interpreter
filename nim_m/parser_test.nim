@@ -1,5 +1,5 @@
 # テストの仕方
-# nim c -r parser_test.nim "test1などの名前指定"
+# nim c -r parser_test.nim "test5"
 import unittest
 import strutils
 import strformat
@@ -18,6 +18,37 @@ proc checkParserErrors(l: Lexer, p: Parser): bool =
   return false
 
 suite "parser_test":
+
+  test "test5":
+    let input = """
+!525;
+-3.1415;
+    """
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo type(v)
+      echo type(ExpressionStatement(v))
+      echo type(ExpressionStatement(v).expression)
+      var v1 = ExpressionStatement(v).expression
+      echo v1[]
+      if v1 of PrefixExpression:
+        echo PrefixExpression(v1).token[]
+        echo PrefixExpression(v1).operator
+        let v2 = PrefixExpression(v1).right
+        if v2 of IntegerLiteral:
+          echo "IntegerLiteral"
+          echo IntegerLiteral(v2).value
+        elif v2 of FloatLiteral:
+          echo "FloatLiteral"
+          echo FloatLiteral(v2).value
+      else:
+        echo "NG"
+      echo "-".repeat(20)
 
 
   test "test4":
