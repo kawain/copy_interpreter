@@ -172,6 +172,8 @@ class FloatLiteral(Expression):
 
 
 class PrefixExpression(Expression):
+    """前置演算子"""
+
     def __init__(self, token=None, operator="", right=None):
         self.token = token
         # "-", "!" が来る
@@ -196,6 +198,8 @@ class PrefixExpression(Expression):
 
 
 class InfixExpression(Expression):
+    """中置演算子"""
+
     def __init__(self, token=None, left=None, operator="", right=None):
         self.token = token
         self.left = left
@@ -220,6 +224,26 @@ class InfixExpression(Expression):
 
     def __str__(self):
         return "InfixExpression(Expression)"
+
+
+class Boolean(Expression):
+    """真偽値"""
+
+    def __init__(self, token=None, value=False):
+        self.token = token
+        self.value = value
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        return self.token.literal
+
+    def __str__(self):
+        return "Boolean(Expression)"
 
 
 if __name__ == "__main__":

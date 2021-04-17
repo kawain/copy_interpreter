@@ -42,6 +42,9 @@ class Parser:
         self.prefix_parse_fns[TokenType.FLOAT] = self.parse_floatLiteral_literal
         self.prefix_parse_fns[TokenType.BANG] = self.parse_prefix_expression
         self.prefix_parse_fns[TokenType.MINUS] = self.parse_prefix_expression
+        self.prefix_parse_fns[TokenType.TRUE] = self.parse_boolean
+        self.prefix_parse_fns[TokenType.FALSE] = self.parse_boolean
+        self.prefix_parse_fns[TokenType.LPAREN] = self.parse_grouped_expression
         # 中置構文解析関数追加
         self.infix_parse_fns[TokenType.PLUS] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.MINUS] = self.parse_infix_expression
@@ -211,6 +214,19 @@ class Parser:
         self.next_token()
         expression.right = self.parse_expression(precedence)
         return expression
+
+    def parse_boolean(self):
+        return ast_.Boolean(
+            token=self.cur_token,
+            value=self.cur_token_is(TokenType.TRUE)
+        )
+
+    def parse_grouped_expression(self):
+        self.next_token()
+        exp = self.parse_expression(priority["LOWEST"])
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+        return exp
 
     def Errors(self):
         return self.errors
