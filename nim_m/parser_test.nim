@@ -1,5 +1,5 @@
 # テストの仕方
-# nim c -r parser_test.nim "test7"
+# nim c -r parser_test.nim "test8"
 import unittest
 import strutils
 import strformat
@@ -36,6 +36,30 @@ proc handyInfixExpression(left, right: Expression) =
 
 suite "parser_test":
 
+  test "test8":
+    let input = """
+if (x < y) { x }
+if (10 < 100) { (10 - 12) * 3 }
+    """
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo type(v)
+      echo type(ExpressionStatement(v))
+      echo type(ExpressionStatement(v).expression)
+      var v1 = ExpressionStatement(v).expression
+      if v1 of IfExpression:
+        let v2 = IfExpression(v1)
+        echo v2.toString()
+      else:
+        echo "NG"
+      echo "-".repeat(20)
+
+
   test "test7":
     let input = [
       ["-a * b", "((-a) * b)"],
@@ -49,7 +73,17 @@ suite "parser_test":
       ["3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"],
       ["5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"],
       ["5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"],
-      ["3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"]
+      ["3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"],
+      ["true", "true"],
+      ["false", "false"],
+      ["3 > 5 == false", "((3 > 5) == false)"],
+      ["3 < 5 == true", "((3 < 5) == true)"],
+      ["1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"],
+      ["(5 + 5) * 2", "((5 + 5) * 2)"],
+      ["2 / (5 + 5)", "(2 / (5 + 5))"],
+      ["(5 + 5) * 2 * (5 + 5)", "(((5 + 5) * 2) * (5 + 5))"],
+      ["-(5 + 5)", "(-(5 + 5))"],
+      ["!(true == true)", "(!(true == true))"],
     ]
     for v in input:
       let l = LexerNew(v[0])

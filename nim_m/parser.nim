@@ -65,10 +65,10 @@ proc parsePrefixExpression(self: Parser): Expression
 proc peekPrecedence(self: Parser): Priority
 proc curPrecedence(self: Parser): Priority
 proc parseInfixExpression(self: Parser, left: Expression): Expression
-# proc parseBoolean(self: Parser): Expression
-# proc parseGroupedExpression(self: Parser): Expression
-# proc parseIfExpression(self: Parser): Expression
-# proc parseBlockStatement(self: Parser): BlockStatement
+proc parseBoolean(self: Parser): Expression
+proc parseGroupedExpression(self: Parser): Expression
+proc parseIfExpression(self: Parser): Expression
+proc parseBlockStatement(self: Parser): BlockStatement
 # proc parseFunctionLiteral(self: Parser): Expression
 # proc parseFunctionParameters(self: Parser): seq[Identifier]
 # proc parseCallExpression(self: Parser, f: Expression): Expression
@@ -86,10 +86,10 @@ proc ParserNew(lex: Lexer): Parser =
   result.prefixParseFns[FLOAT] = parseFloatLiteral
   result.prefixParseFns[BANG] = parsePrefixExpression
   result.prefixParseFns[MINUS] = parsePrefixExpression
-  # result.prefixParseFns[TRUE] = parseBoolean
-  # result.prefixParseFns[FALSE] = parseBoolean
-  # result.prefixParseFns[LPAREN] = parseGroupedExpression
-  # result.prefixParseFns[IF] = parseIfExpression
+  result.prefixParseFns[TRUE] = parseBoolean
+  result.prefixParseFns[FALSE] = parseBoolean
+  result.prefixParseFns[LPAREN] = parseGroupedExpression
+  result.prefixParseFns[IF] = parseIfExpression
   # result.prefixParseFns[FUNCTION] = parseFunctionLiteral
 
   result.infixParseFns[PLUS] = parseInfixExpression
@@ -284,56 +284,56 @@ proc parseInfixExpression(self: Parser, left: Expression): Expression =
   expression
 
 
-# proc parseBoolean(self: Parser): Expression =
-#   Boolean(token: self.curToken, value: self.curTokenIs(TRUE))
+proc parseBoolean(self: Parser): Expression =
+  Boolean(token: self.curToken, value: self.curTokenIs(TRUE))
 
 
-# proc parseGroupedExpression(self: Parser): Expression =
-#   self.nextToken()
-#   let exp = self.parseExpression(LOWEST)
-#   if not self.expectPeek(RPAREN):
-#     return nil
-#   exp
+proc parseGroupedExpression(self: Parser): Expression =
+  self.nextToken()
+  let exp = self.parseExpression(LOWEST)
+  if not self.expectPeek(RPAREN):
+    return nil
+  exp
 
 
-# proc parseIfExpression(self: Parser): Expression =
-#   let expression = IfExpression(token: self.curToken)
+proc parseIfExpression(self: Parser): Expression =
+  let expression = IfExpression(token: self.curToken)
 
-#   if not self.expectPeek(LPAREN):
-#     return nil
+  if not self.expectPeek(LPAREN):
+    return nil
 
-#   self.nextToken()
-#   expression.condition = self.parseExpression(LOWEST)
+  self.nextToken()
+  expression.condition = self.parseExpression(LOWEST)
 
-#   if not self.expectPeek(RPAREN):
-#     return nil
+  if not self.expectPeek(RPAREN):
+    return nil
 
-#   if not self.expectPeek(LBRACE):
-#     return nil
+  if not self.expectPeek(LBRACE):
+    return nil
 
-#   expression.consequence = self.parseBlockStatement()
+  expression.consequence = self.parseBlockStatement()
 
-#   if self.peekTokenIs(ELSE):
-#     self.nextToken()
+  if self.peekTokenIs(ELSE):
+    self.nextToken()
 
-#     if not self.expectPeek(LBRACE):
-#       return nil
+    if not self.expectPeek(LBRACE):
+      return nil
 
-#     expression.alternative = self.parseBlockStatement()
-#   expression
+    expression.alternative = self.parseBlockStatement()
+  expression
 
 
-# proc parseBlockStatement(self: Parser): BlockStatement =
-#   result = BlockStatement(token: self.curToken)
-#   result.statements = newSeq[Statement]()
+proc parseBlockStatement(self: Parser): BlockStatement =
+  result = BlockStatement(token: self.curToken)
+  result.statements = newSeq[Statement]()
 
-#   self.nextToken()
+  self.nextToken()
 
-#   while not self.curTokenIs(RBRACE) and not self.curTokenIs(EOF):
-#     let stmt = self.parseStatement()
-#     if stmt != nil:
-#       result.statements.add(stmt)
-#     self.nextToken()
+  while not self.curTokenIs(RBRACE) and not self.curTokenIs(EOF):
+    let stmt = self.parseStatement()
+    if stmt != nil:
+      result.statements.add(stmt)
+    self.nextToken()
 
 
 # proc parseFunctionLiteral(self: Parser): Expression =
