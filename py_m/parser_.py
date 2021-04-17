@@ -45,6 +45,7 @@ class Parser:
         self.prefix_parse_fns[TokenType.TRUE] = self.parse_boolean
         self.prefix_parse_fns[TokenType.FALSE] = self.parse_boolean
         self.prefix_parse_fns[TokenType.LPAREN] = self.parse_grouped_expression
+        self.prefix_parse_fns[TokenType.IF] = self.parse_if_expression
         # 中置構文解析関数追加
         self.infix_parse_fns[TokenType.PLUS] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.MINUS] = self.parse_infix_expression
@@ -227,6 +228,43 @@ class Parser:
         if not self.expect_peek(TokenType.RPAREN):
             return None
         return exp
+
+    def parse_if_expression(self):
+        expression = ast_.IfExpression(token=self.cur_token)
+
+        if not self.expect_peek(TokenType.LPAREN):
+            return None
+
+        self.next_token()
+        expression.condition = self.parse_expression(priority["LOWEST"])
+
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+
+        if not self.expect_peek(TokenType.LBRACE):
+            return None
+
+        expression.consequence = self.parse_block_statement()
+
+        if self.peek_token_is(TokenType.ELSE):
+            self.next_token()
+
+            if not self.expect_peek(TokenType.LBRACE):
+                return None
+
+            expression.alternative = self.parse_block_statement()
+
+        return expression
+
+    def parse_block_statement(self):
+        block = ast_.BlockStatement(token=self.cur_token)
+        self.next_token()
+        while not self.cur_token_is(TokenType.RBRACE) and not self.cur_token_is(TokenType.EOF):
+            stmt = self.parse_statement()
+            if stmt is not None:
+                block.statements.append(stmt)
+            self.next_token()
+        return block
 
     def Errors(self):
         return self.errors

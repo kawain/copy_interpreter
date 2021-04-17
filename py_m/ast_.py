@@ -29,7 +29,7 @@ class Program(Node):
 
     def token_literal(self):
         if len(self.statements) > 0:
-            return self.statements[0].tokenLiteral()
+            return self.statements[0].token_literal()
         else:
             return ""
 
@@ -44,6 +44,8 @@ class Program(Node):
 
 
 class LetStatement(Statement):
+    """let文"""
+
     def __init__(self, token=None, name=None, value=None):
         self.token = token
         self.name = name
@@ -70,6 +72,8 @@ class LetStatement(Statement):
 
 
 class Identifier(Expression):
+    """識別子"""
+
     def __init__(self, token=None, value=None):
         self.token = token
         self.value = value
@@ -88,6 +92,8 @@ class Identifier(Expression):
 
 
 class ReturnStatement(Statement):
+    """return文"""
+
     def __init__(self, token=None, return_value=None):
         self.token = token
         self.return_value = return_value
@@ -111,6 +117,8 @@ class ReturnStatement(Statement):
 
 
 class ExpressionStatement(Statement):
+    """式文"""
+
     def __init__(self, token=None, expression=None):
         self.token = token
         self.expression = expression
@@ -244,6 +252,58 @@ class Boolean(Expression):
 
     def __str__(self):
         return "Boolean(Expression)"
+
+
+class IfExpression(Expression):
+    """if式"""
+
+    def __init__(self, token=None, condition=None, consequence=None, alternative=None):
+        self.token = token
+        self.condition = condition
+        self.consequence = consequence
+        self.alternative = alternative
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        out = "if"
+        out += self.condition.string()
+        out += " "
+        out += self.consequence.string()
+        if self.alternative is not None:
+            out += "else "
+            out += self.alternative.string()
+        return out
+
+    def __str__(self):
+        return "IfExpression(Expression)"
+
+
+class BlockStatement(Statement):
+    """ブロック文"""
+
+    def __init__(self, token=None):
+        self.token = token
+        self.statements = []
+
+    def token_literal(self):
+        return self.token.literal
+
+    def statement_node(self):
+        pass
+
+    def string(self):
+        s = ""
+        for v in self.statements:
+            s += v.string()
+        return s
+
+    def __str__(self):
+        return "BlockStatement(Statement)"
 
 
 if __name__ == "__main__":

@@ -14,6 +14,21 @@ class TestParser(unittest.TestCase):
         for v in errors:
             print(f"parser error: {v}")
 
+    def test_if(self):
+        line = """
+if (x < y) { x }
+if (5 < 10) { (1 + 2) * 3 }
+"""
+
+        lex = lexer_.Lexer(input=line)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        print(program)
+        self.check_parser_errors(obj)
+
+        for v in program.statements:
+            print(v.string())
+
     def test_OperatorPrecedenceParsing(self):
         tests = [
             (
