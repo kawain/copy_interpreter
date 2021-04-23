@@ -180,12 +180,18 @@ class Parser:
     def expect_number(self):
         if self.obj.type != INT:
             sys.exit("数ではありません")
-        val = self.obj.literal
+        val = int(self.obj.literal)
         self.read_pos()
         return val
 
     # expr    = mul ("+" mul | "-" mul)*
     # mul     = primary ("*" primary | "/" primary)*
+    # primary = num | "(" expr ")"
+
+    # 単項演算子
+    # expr    = mul ("+" mul | "-" mul)*
+    # mul     = unary ("*" unary | "/" unary)*
+    # unary   = ("+" | "-")? primary
     # primary = num | "(" expr ")"
 
     def expr(self):
@@ -199,14 +205,21 @@ class Parser:
                 return node
 
     def mul(self):
-        node = self.primary()
+        node = self.unary()
         while True:
             if self.consume("*"):
-                node = self.new_node(ASTERISK, node, self.primary())
+                node = self.new_node(ASTERISK, node, self.unary())
             elif self.consume("/"):
-                node = self.new_node(SLASH, node, self.primary())
+                node = self.new_node(SLASH, node, self.unary())
             else:
                 return node
+
+    def unary(self):
+        if self.consume("+"):
+            return self.primary()
+        if self.consume("-"):
+            return self.new_node(MINUS, self.new_node_num(0), self.primary())
+        return self.primary()
 
     def primary(self):
         # 次のトークンが"("なら、"(" expr ")"のはず

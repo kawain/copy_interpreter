@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"strconv"
 )
 
@@ -19,6 +22,8 @@ const (
 	ASTERISK  = "*"
 	SLASH     = "/"
 	SEMICOLON = ";"
+	LPAREN    = "("
+	RPAREN    = ")"
 )
 
 type MyToken struct {
@@ -99,6 +104,10 @@ func (l *MyLexer) nextToken() MyToken {
 		tok = newToken(ASTERISK, l.ch)
 	case ';':
 		tok = newToken(SEMICOLON, l.ch)
+	case '(':
+		tok = newToken(LPAREN, l.ch)
+	case ')':
+		tok = newToken(RPAREN, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = EOF
@@ -263,6 +272,7 @@ func newParser(l *MyLexer) *Parser {
 	p.prefixParseFns = make(map[string]prefixParseFn)
 	p.prefixParseFns[INT] = p.parseIntegerLiteral
 	p.prefixParseFns[MINUS] = p.parsePrefixExpression
+	p.prefixParseFns[LPAREN] = p.parseGroupedExpression // (
 
 	p.infixParseFns = make(map[string]infixParseFn)
 	p.infixParseFns[PLUS] = p.parseInfixExpression
@@ -426,7 +436,37 @@ func (p *Parser) parseInfixExpression(left Expression) Expression {
 	return expression
 }
 
+func (p *Parser) parseGroupedExpression() Expression {
+	p.nextToken()
+	exp := p.parseExpression(LOWEST)
+	if !p.expectPeek(RPAREN) {
+		return nil
+	}
+	return exp
+}
+
+//
+// repl
+//
+
+func Start(in io.Reader, out io.Writer) {
+	scanner := bufio.NewScanner(in)
+
+	for {
+		fmt.Printf(">> ")
+		scanned := scanner.Scan()
+		if !scanned {
+			return
+		}
+
+		line := scanner.Text()
+		l := newLexer(line)
+		p := newParser(l)
+		program := p.ParseProgram()
+		fmt.Printf("%v\n", program.String())
+	}
+}
+
 func main() {
-	s := "Hello, 世界"
-	fmt.Printf("%v\n", s)
+	Start(os.Stdin, os.Stdout)
 }
