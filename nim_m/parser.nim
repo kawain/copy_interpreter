@@ -69,14 +69,14 @@ proc parseBoolean(self: Parser): Expression
 proc parseGroupedExpression(self: Parser): Expression
 proc parseIfExpression(self: Parser): Expression
 proc parseBlockStatement(self: Parser): BlockStatement
-# proc parseFunctionLiteral(self: Parser): Expression
-# proc parseFunctionParameters(self: Parser): seq[Identifier]
-# proc parseCallExpression(self: Parser, f: Expression): Expression
-# proc parseCallArguments(self: Parser): seq[Expression]
+proc parseFunctionLiteral(self: Parser): Expression
+proc parseFunctionParameters(self: Parser): seq[Identifier]
+proc parseCallExpression(self: Parser, f: Expression): Expression
+proc parseCallArguments(self: Parser): seq[Expression]
 
 
 
-proc ParserNew(lex: Lexer): Parser =
+proc ParserNew*(lex: Lexer): Parser =
   result = new Parser
   result.lex = lex
   result.errors = newSeq[string]()
@@ -90,7 +90,7 @@ proc ParserNew(lex: Lexer): Parser =
   result.prefixParseFns[FALSE] = parseBoolean
   result.prefixParseFns[LPAREN] = parseGroupedExpression
   result.prefixParseFns[IF] = parseIfExpression
-  # result.prefixParseFns[FUNCTION] = parseFunctionLiteral
+  result.prefixParseFns[FUNCTION] = parseFunctionLiteral
 
   result.infixParseFns[PLUS] = parseInfixExpression
   result.infixParseFns[MINUS] = parseInfixExpression
@@ -100,8 +100,7 @@ proc ParserNew(lex: Lexer): Parser =
   result.infixParseFns[NOT_EQ] = parseInfixExpression
   result.infixParseFns[LT] = parseInfixExpression
   result.infixParseFns[GT] = parseInfixExpression
-
-  # result.infixParseFns[LPAREN] = parseCallExpression
+  result.infixParseFns[LPAREN] = parseCallExpression
 
   result.nextToken()
   result.nextToken()
@@ -143,9 +142,9 @@ proc parseLetStatement(self: Parser): Statement =
   if not self.expectPeek(ASSIGN):
     return nil
 
-  # self.nextToken()
+  self.nextToken()
 
-  # stmt.value = self.parseExpression(LOWEST)
+  stmt.value = self.parseExpression(LOWEST)
 
   if self.peekTokenIs(SEMICOLON):
     self.nextToken()
@@ -184,7 +183,7 @@ proc parseReturnStatement(self: Parser): Statement =
 
   self.nextToken()
 
-  # stmt.returnValue = self.parseExpression(LOWEST)
+  stmt.returnValue = self.parseExpression(LOWEST)
 
   if self.peekTokenIs(SEMICOLON):
     self.nextToken()
@@ -336,70 +335,70 @@ proc parseBlockStatement(self: Parser): BlockStatement =
     self.nextToken()
 
 
-# proc parseFunctionLiteral(self: Parser): Expression =
-#   let lit = FunctionLiteral(token: self.curToken)
+proc parseFunctionLiteral(self: Parser): Expression =
+  let lit = FunctionLiteral(token: self.curToken)
 
-#   if not self.expectPeek(LPAREN):
-#     return nil
+  if not self.expectPeek(LPAREN):
+    return nil
 
-#   lit.parameters = self.parseFunctionParameters()
+  lit.parameters = self.parseFunctionParameters()
 
-#   if not self.expectPeek(LBRACE):
-#     return nil
+  if not self.expectPeek(LBRACE):
+    return nil
 
-#   lit.body = self.parseBlockStatement()
-#   lit
-
-
-# proc parseFunctionParameters(self: Parser): seq[Identifier] =
-#   result = newSeq[Identifier]()
-
-#   if self.peekTokenIs(RPAREN):
-#     self.nextToken()
-#     return result
-
-#   self.nextToken()
-
-#   var ident = Identifier(token: self.curToken, value: self.curToken.literal)
-#   result.add(ident)
-
-#   while self.peekTokenIs(COMMA):
-#     self.nextToken()
-#     self.nextToken()
-#     ident = Identifier(token: self.curToken, value: self.curToken.literal)
-#     result.add(ident)
-
-#   if not self.expectPeek(RPAREN):
-#     return @[]
-
-#   return result
+  lit.body = self.parseBlockStatement()
+  lit
 
 
-# proc parseCallExpression(self: Parser, f: Expression): Expression =
-#   let exp = CallExpression(token: self.curToken, function: f)
-#   exp.arguments = self.parseCallArguments()
-#   exp
+proc parseFunctionParameters(self: Parser): seq[Identifier] =
+  result = newSeq[Identifier]()
+
+  if self.peekTokenIs(RPAREN):
+    self.nextToken()
+    return result
+
+  self.nextToken()
+
+  var ident = Identifier(token: self.curToken, value: self.curToken.literal)
+  result.add(ident)
+
+  while self.peekTokenIs(COMMA):
+    self.nextToken()
+    self.nextToken()
+    ident = Identifier(token: self.curToken, value: self.curToken.literal)
+    result.add(ident)
+
+  if not self.expectPeek(RPAREN):
+    return @[]
+
+  return result
 
 
-# proc parseCallArguments(self: Parser): seq[Expression] =
-#   result = newSeq[Expression]()
+proc parseCallExpression(self: Parser, f: Expression): Expression =
+  let exp = CallExpression(token: self.curToken, function: f)
+  exp.arguments = self.parseCallArguments()
+  exp
 
-#   if self.peekTokenIs(RPAREN):
-#     self.nextToken()
-#     return result
 
-#   self.nextToken()
-#   result.add(self.parseExpression(LOWEST))
+proc parseCallArguments(self: Parser): seq[Expression] =
+  result = newSeq[Expression]()
 
-#   while self.peekTokenIs(COMMA):
-#     self.nextToken()
-#     self.nextToken()
-#     result.add(self.parseExpression(LOWEST))
+  if self.peekTokenIs(RPAREN):
+    self.nextToken()
+    return result
 
-#   if not self.expectPeek(RPAREN):
-#     return @[]
+  self.nextToken()
+  result.add(self.parseExpression(LOWEST))
 
-#   return result
+  while self.peekTokenIs(COMMA):
+    self.nextToken()
+    self.nextToken()
+    result.add(self.parseExpression(LOWEST))
+
+  if not self.expectPeek(RPAREN):
+    return @[]
+
+  return result
 
 
 

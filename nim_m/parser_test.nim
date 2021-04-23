@@ -1,5 +1,5 @@
 # テストの仕方
-# nim c -r parser_test.nim "test8"
+# nim c -r parser_test.nim "test9"
 import unittest
 import strutils
 import strformat
@@ -35,6 +35,71 @@ proc handyInfixExpression(left, right: Expression) =
 
 
 suite "parser_test":
+
+  test "test11":
+    let input = "add(1, 2 * 3, 4 + 5);"
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo type(v)
+      echo type(ExpressionStatement(v))
+      echo type(ExpressionStatement(v).expression)
+      var v1 = ExpressionStatement(v).expression
+      if v1 of CallExpression:
+        let v2 = CallExpression(v1)
+        echo v2.toString()
+      else:
+        echo "NG"
+      echo "-".repeat(20)
+
+
+  test "test10":
+    let tests = [
+        ("fn() {};", @[]),
+        ("fn(x) {};", @["x"]),
+        ("fn(x, y, z) {};", @["x", "y", "z"]),
+      ]
+
+    for v in tests:
+      let l = LexerNew(v[0])
+      let p = ParserNew(l)
+      let program = p.parseProgram()
+      let b = checkParserErrors(l, p)
+      check(b)
+
+      let stmt = ExpressionStatement(program.statements[0])
+      let fn = FunctionLiteral(stmt.expression)
+      check(len(fn.parameters) == len(v[1]))
+
+      for i, v2 in v[1]:
+        let obj = fn.parameters[i]
+        check(obj.value == v2)
+
+
+  test "test9":
+    let input = "fn(x, y) { x + y; }"
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    let b = checkParserErrors(l, p)
+    check(b)
+
+    for v in program.statements:
+      echo type(v)
+      echo type(ExpressionStatement(v))
+      echo type(ExpressionStatement(v).expression)
+      var v1 = ExpressionStatement(v).expression
+      if v1 of FunctionLiteral:
+        let v2 = FunctionLiteral(v1)
+        echo v2.toString()
+      else:
+        echo "NG"
+      echo "-".repeat(20)
+
 
   test "test8":
     let input = """
@@ -84,7 +149,12 @@ if (10 < 100) { (10 - 12) * 3 }
       ["(5 + 5) * 2 * (5 + 5)", "(((5 + 5) * 2) * (5 + 5))"],
       ["-(5 + 5)", "(-(5 + 5))"],
       ["!(true == true)", "(!(true == true))"],
+      ["a + add(b * c) + d", "((a + add((b * c))) + d)"],
+      ["add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+          "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"],
+      ["add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"]
     ]
+
     for v in input:
       let l = LexerNew(v[0])
       let p = ParserNew(l)
@@ -97,15 +167,15 @@ if (10 < 100) { (10 - 12) * 3 }
   test "test6":
     # intとfloatの計算ができるのはここでは無視
     let input = """
-5 + 5.;
-5 - .5;
-5. * 5;
-5. / 5;
-5. > 5;
-.5 < 5;
-.5 == 5;
-.5 != 5;
-    """
+  5 + 5.;
+  5 - .5;
+  5. * 5;
+  5. / 5;
+  5. > 5;
+  .5 < 5;
+  .5 == 5;
+  .5 != 5;
+      """
     let l = LexerNew(input)
     let p = ParserNew(l)
     let program = p.parseProgram()
@@ -130,9 +200,9 @@ if (10 < 100) { (10 - 12) * 3 }
 
   test "test5":
     let input = """
-!525;
--3.1415;
-    """
+  !525;
+  -3.1415;
+      """
     let l = LexerNew(input)
     let p = ParserNew(l)
     let program = p.parseProgram()
@@ -162,9 +232,9 @@ if (10 < 100) { (10 - 12) * 3 }
 
   test "test4":
     let input = """
-5;
-3.1415;
-    """
+  5;
+  3.1415;
+      """
     let l = LexerNew(input)
     let p = ParserNew(l)
     let program = p.parseProgram()
@@ -191,8 +261,8 @@ if (10 < 100) { (10 - 12) * 3 }
 
   test "test3":
     let input = """
-foobar;
-    """
+  foobar;
+      """
     let l = LexerNew(input)
     let p = ParserNew(l)
     let program = p.parseProgram()
@@ -208,10 +278,10 @@ foobar;
 
   test "test2":
     let input = """
-return 5;
-return 10;
-return add(15);
-    """
+  return 5;
+  return 10;
+  return add(15);
+      """
     let l = LexerNew(input)
     let p = ParserNew(l)
     let program = p.parseProgram()
@@ -227,10 +297,10 @@ return add(15);
 
   test "test1":
     let input = """
-let x = 5;
-let y = 10;
-let foobar = 838383;
-    """
+  let x = 5;
+  let y = 10;
+  let foobar = 838383;
+      """
     let l = LexerNew(input)
     let p = ParserNew(l)
     let program = p.parseProgram()
