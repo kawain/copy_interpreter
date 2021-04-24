@@ -155,9 +155,9 @@ class Parser:
         return node
 
     @staticmethod
-    def new_node_num(val):
+    def new_node_num(kind, val):
         node = Node()
-        node.kind = INT
+        node.kind = kind
         node.val = val
         return node
 
@@ -178,11 +178,16 @@ class Parser:
     # 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す。
     # それ以外の場合にはエラーを報告する。
     def expect_number(self):
-        if self.obj.type != INT:
+        if self.obj.type == INT:
+            kind = INT
+            val = int(self.obj.literal)
+        elif self.obj.type == FLOAT:
+            kind = FLOAT
+            val = float(self.obj.literal)
+        else:
             sys.exit("数ではありません")
-        val = int(self.obj.literal)
         self.read_pos()
-        return val
+        return kind, val
 
     # expr    = mul ("+" mul | "-" mul)*
     # mul     = primary ("*" primary | "/" primary)*
@@ -218,7 +223,7 @@ class Parser:
         if self.consume("+"):
             return self.primary()
         if self.consume("-"):
-            return self.new_node(MINUS, self.new_node_num(0), self.primary())
+            return self.new_node(MINUS, self.new_node_num(INT, 0), self.primary())
         return self.primary()
 
     def primary(self):
@@ -228,7 +233,8 @@ class Parser:
             self.expect(")")
             return node
         # そうでなければ数値のはず
-        return self.new_node_num(self.expect_number())
+        kind, val = self.expect_number()
+        return self.new_node_num(kind, val)
 
 
 def new_parser(input):
@@ -244,28 +250,37 @@ def new_parser(input):
     return Parser(tokens)
 
 
-# 木を確認
-def gen(node):
+def eval_infix(operator, left, right):
+    if operator == "+":
+        return left + right
+    elif operator == "-":
+        return left - right
+    elif operator == "*":
+        return left * right
+    elif operator == "/":
+        return left / right
+    else:
+        return None
+
+
+def eval(node):
     if node.kind == INT:
-        print(node.val)
-        return
+        return node.val
+    elif node.kind == FLOAT:
+        return node.val
+    elif node.kind == PLUS or node.kind == MINUS or node.kind == ASTERISK or node.kind == SLASH:
+        left = eval(node.left)
+        right = eval(node.right)
+        return eval_infix(node.kind, left, right)
 
-    gen(node.left)
-    gen(node.right)
-
-    if node.kind == PLUS:
-        print("+")
-    elif node.kind == MINUS:
-        print("-")
-    elif node.kind == ASTERISK:
-        print("*")
-    elif node.kind == SLASH:
-        print("/")
+    return None
 
 
 if __name__ == "__main__":
     input = """1 * 2 + 3 * 4"""
+    input = """3.14 * 2"""
 
     p = new_parser(input)
     node = p.expr()
-    gen(node)
+    evaluated = eval(node)
+    print(evaluated)
