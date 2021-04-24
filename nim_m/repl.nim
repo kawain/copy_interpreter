@@ -1,6 +1,7 @@
 import lexer
 import parser
-import ast
+import obj
+import eval
 
 const PROMPT = ">> "
 
@@ -22,4 +23,7 @@ proc start*() =
     if len(p.Errors()) != 0:
       printParserErrors(p.Errors())
       continue
-    echo program.toString()
+
+    let evaluated = eval.Eval(program)
+    if evaluated != nil:
+      echo evaluated.Inspect()
