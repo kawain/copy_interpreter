@@ -278,7 +278,7 @@ def eval(node):
 
 if __name__ == "__main__":
     input = """1 * 2 + 3 * 4"""
-    input = """3.14 * 2"""
+    input = """3.14 * 2;"""
 
     p = new_parser(input)
     node = p.expr()
