@@ -49,8 +49,8 @@ suite "eval_test":
     let tests = [
       ("5", 5),
       ("10", 10),
-      # ("-5", -5),
-      # ("-10", -10),
+      ("-5", -5),
+      ("-10", -10),
       # ("5 + 5 + 5 + 5 - 10", 10),
       # ("2 * 2 * 2 * 2 * 2", 32),
       # ("-50 + 100 + -50", 0),
@@ -97,3 +97,20 @@ suite "eval_test":
       let evaluated = testEval(v[0])
       let a = testBooleanObject(evaluated, v[1])
       check(a)
+
+
+  test "test3 前置式":
+    let tests = [
+      ("!true", false),
+      ("!false", true),
+      ("!5", false),
+      ("!!true", true),
+      ("!!false", false),
+      ("!!5", true),
+    ]
+
+    for v in tests:
+      let e = testEval(v[0])
+      let a = testBooleanObject(e, v[1])
+      check(a)
+
