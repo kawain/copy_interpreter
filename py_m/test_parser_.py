@@ -253,6 +253,43 @@ let foobar = 838383;
             print(type(v.expression.operator))
             print(type(v.expression.right))
 
+    def test_functionliteral_parsing(self):
+        line = "fn(x, y) { x + y; }"
+
+        lex = lexer_.Lexer(input=line)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        self.check_parser_errors(obj)
+
+        for v in program.statements:
+            print(v.string())
+            print(type(v))
+            print(type(v.expression))
+            print(type(v.expression.token))
+            print(type(v.expression.string()))
+            print(v.expression.string())
+
+    def test_function_parameter_parsing(self):
+        tests = [
+            ["fn() {};", []],
+            ["fn(x) {};", ["x"]],
+            ["fn(x, y, z) {};", ["x", "y", "z"]],
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex)
+            program = obj.parse_program()
+            self.check_parser_errors(obj)
+            print(program.statements[0].expression)
+            assert type(
+                program.statements[0].expression) is ast_.FunctionLiteral, "型違い"
+            obj = program.statements[0].expression
+            # キャスト
+            obj.__class__ = ast_.FunctionLiteral
+            for v2, v3 in zip(obj.parameters, v[1]):
+                assert v2.value == v3, "エラー"
+
 
 if __name__ == '__main__':
     unittest.main()

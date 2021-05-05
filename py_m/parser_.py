@@ -46,6 +46,7 @@ class Parser:
         self.prefix_parse_fns[TokenType.FALSE] = self.parse_boolean
         self.prefix_parse_fns[TokenType.LPAREN] = self.parse_grouped_expression
         self.prefix_parse_fns[TokenType.IF] = self.parse_if_expression
+        self.prefix_parse_fns[TokenType.FUNCTION] = self.parse_functionLiteral
         # 中置構文解析関数追加
         self.infix_parse_fns[TokenType.PLUS] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.MINUS] = self.parse_infix_expression
@@ -271,6 +272,48 @@ class Parser:
 
     def __str__(self):
         return "Parser()"
+
+    def parse_functionLiteral(self):
+        lit = ast_.FunctionLiteral(token=self.cur_token)
+
+        if not self.expect_peek(TokenType.LPAREN):
+            return None
+
+        lit.parameters = self.parse_function_parameters()
+
+        if not self.expect_peek(TokenType.LBRACE):
+            return None
+
+        lit.body = self.parse_block_statement()
+
+        return lit
+
+    def parse_function_parameters(self):
+        identifiers = []
+
+        if self.peek_token_is(TokenType.RPAREN):
+            self.next_token()
+            return identifiers
+
+        self.next_token()
+
+        ident = ast_.Identifier(token=self.cur_token,
+                                value=self.cur_token.literal)
+        identifiers.append(ident)
+
+        while self.peek_token_is(TokenType.COMMA):
+            self.next_token()
+            self.next_token()
+
+            ident = ast_.Identifier(
+                token=self.cur_token,
+                value=self.cur_token.literal)
+            identifiers.append(ident)
+
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+
+        return identifiers
 
 
 if __name__ == "__main__":

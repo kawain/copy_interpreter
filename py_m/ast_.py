@@ -306,6 +306,38 @@ class BlockStatement(Statement):
         return "BlockStatement(Statement)"
 
 
+class FunctionLiteral(Expression):
+    """関数リテラル"""
+
+    def __init__(self, token=None, parameters=[], body=None):
+        self.token = token
+        # Identifier のリスト
+        self.parameters = []
+        # BlockStatement
+        self.body = body
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        params = []
+        for v in self.parameters:
+            params.append(v.string())
+
+        out = self.token_literal()
+        out += "("
+        out += ", ".join(params)
+        out += ")"
+        out += self.body.string()
+        return out
+
+    def __str__(self):
+        return "FunctionLiteral(Expression)"
+
+
 if __name__ == "__main__":
     from token_ import Token, TokenType
     ls = LetStatement(
