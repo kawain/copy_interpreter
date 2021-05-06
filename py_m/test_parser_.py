@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_let_statements
+# python -m unittest test_parser_.TestParser.test_return_statements
 import unittest
 import ast_  # noqa
 import lexer_
@@ -84,6 +84,27 @@ class TestParser(unittest.TestCase):
             assert self.test_let_statement(stmt, v[1])
             val = stmt.value
             assert self.test_literal_expression(val, v[2])
+
+    def test_return_statements(self):
+        tests = [
+            ("return 5;", 5),
+            ("return true;", True),
+            ("return foobar;", "foobar"),
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex)
+            program = obj.parse_program()
+
+            assert self.check_parser_errors(obj)
+            assert len(program.statements) == 1,\
+                f"program.Statements does not contain 1 statements. got={len(program.statements)}"
+
+            stmt = program.statements[0]
+            assert type(stmt) is ast_.ReturnStatement
+            assert stmt.token_literal() == "return"
+            assert self.test_literal_expression(stmt.return_value, v[1])
 
     def test_parse_let_statement(self):
         line = """

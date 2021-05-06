@@ -109,7 +109,7 @@ class Parser:
 
         self.next_token()
 
-        # stmt.return_value = self.parse_expression(priority["LOWEST"])
+        stmt.return_value = self.parse_expression(priority["LOWEST"])
 
         if self.peek_token_is(TokenType.SEMICOLON):
             self.next_token()
