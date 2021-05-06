@@ -94,7 +94,11 @@ class Parser:
         if not self.expect_peek(TokenType.ASSIGN):
             return None
 
-        if self.cur_token_is(TokenType.SEMICOLON):
+        self.next_token()
+
+        stmt.value = self.parse_expression(priority["LOWEST"])
+
+        if self.peek_token_is(TokenType.SEMICOLON):
             # セミコロンまで読み飛ばし
             self.next_token()
 

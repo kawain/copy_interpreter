@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_OperatorPrecedenceParsing
+# python -m unittest test_parser_.TestParser.test_let_statements
 import unittest
 import ast_  # noqa
 import lexer_
@@ -6,13 +6,99 @@ import parser_
 
 
 class TestParser(unittest.TestCase):
+
     def check_parser_errors(self, obj):
         errors = obj.errors
         if len(errors) == 0:
-            return
+            return True
         print(f"parser has {len(errors)} errors")
         for v in errors:
             print(f"parser error: {v}")
+        return False
+
+    def test_let_statement(self, s, name):
+        assert s.token_literal() == "let",\
+            f"s.TokenLiteral not 'let'. got={s.token_literal()}"
+        assert type(s) is ast_.LetStatement,\
+            f"s not LetStatement. got={type(s)}"
+        assert s.name.value == name,\
+            f"s.name not {name}. got={s.name.value}"
+        assert s.name.token_literal() == name,\
+            f"s.name not {name}. got={s.name.token_literal()}"
+        return True
+
+    def test_integer_literal(self, il, value):
+        assert type(il) is ast_.IntegerLiteral,\
+            f"il not IntegerLiteral. got={type(il)}"
+        assert il.value == value,\
+            f"value not {value}. got={il.value}"
+        assert il.token_literal() == str(value),\
+            f"TokenLiteral not {value}. got={il.token_literal()}"
+        return True
+
+    def test_identifier(self, exp, value):
+        assert type(exp) is ast_.Identifier,\
+            f"exp not Identifier. got={type(exp)}"
+        assert exp.value == value,\
+            f"ident.Value not {value}. got={exp.value}"
+        assert exp.token_literal() == value,\
+            f"ident.TokenLiteral not {value}. got={exp.token_literal()}"
+        return True
+
+    def test_boolean_literal(self, exp, value):
+        assert type(exp) is ast_.Boolean,\
+            f"exp not Boolean. got={type(exp)}"
+        assert exp.value == value,\
+            f"Value not {value}. got={exp.value}"
+        # python の True False を小文字に変換
+        assert exp.token_literal() == str(value).lower(),\
+            f"TokenLiteral not {value}. got={exp.token_literal()}"
+        return True
+
+    def test_literal_expression(self, exp, expected):
+        if type(expected) is int:
+            return self.test_integer_literal(exp, int(expected))
+        elif type(expected) is str:
+            return self.test_identifier(exp, expected)
+        elif type(expected) is bool:
+            return self.test_boolean_literal(exp, bool(expected))
+        return False
+
+    def test_let_statements(self):
+        tests = [
+            ("let x = 5;", "x", 5),
+            ("let y = true;", "y", True),
+            ("let foobar = y;", "foobar", "y"),
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex)
+            program = obj.parse_program()
+
+            assert self.check_parser_errors(obj)
+            assert len(program.statements) == 1,\
+                f"program.Statements does not contain 1 statements. got={len(program.statements)}"
+
+            stmt = program.statements[0]
+            assert self.test_let_statement(stmt, v[1])
+            val = stmt.value
+            assert self.test_literal_expression(val, v[2])
+
+    def test_parse_let_statement(self):
+        line = """
+let x = 5;
+let ssss = 10;
+let foobar = 838383;
+        """
+
+        lex = lexer_.Lexer(input=line)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        self.check_parser_errors(obj)
+
+        for v in program.statements:
+            print(v.token_literal())
 
     def test_if(self):
         line = """
@@ -183,21 +269,6 @@ if (5 < 10) { (1 + 2) * 3 }
 return 5;
 return 10;
 return 838383;
-        """
-
-        lex = lexer_.Lexer(input=line)
-        obj = parser_.Parser(lex)
-        program = obj.parse_program()
-        self.check_parser_errors(obj)
-
-        for v in program.statements:
-            print(v.token_literal())
-
-    def test_parse_let_statement(self):
-        line = """
-let x = 5;
-let ssss = 10;
-let foobar = 838383;
         """
 
         lex = lexer_.Lexer(input=line)
