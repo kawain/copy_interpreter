@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_integer_literal_expression
+# python -m unittest test_parser_.TestParser.test_parsing_prefix_expressions
 import unittest
 import ast_  # noqa
 import lexer_
@@ -133,6 +133,29 @@ class TestParser(unittest.TestCase):
         assert type(literal) is ast_.IntegerLiteral
         assert literal.value == 5
         assert literal.token_literal() == "5"
+
+    def test_parsing_prefix_expressions(self):
+        tests = [
+            ("!5;", "!", 5),
+            ("-15;", "-", 15),
+            ("!foobar;", "!", "foobar"),
+            ("-foobar;", "-", "foobar"),
+            ("!true;", "!", True),
+            ("!false;", "!", False),
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex)
+            program = obj.parse_program()
+            assert self.check_parser_errors(obj)
+            assert len(program.statements) == 1
+            stmt = program.statements[0]
+            assert type(stmt) is ast_.ExpressionStatement
+            exp = stmt.expression
+            assert type(exp) is ast_.PrefixExpression
+            assert exp.operator == v[1]
+            assert self.test_literal_expression(exp.right, v[2])
 
     def test_parse_let_statement(self):
         line = """
