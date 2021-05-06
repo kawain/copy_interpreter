@@ -9,11 +9,12 @@ class Lexer:
         self.position = position
         self.next_position = next_position
         self.ch = ch
+        self.size = len(self.input)
 
         self.read_char()
 
     def read_char(self):
-        if self.next_position >= len(self.input):
+        if self.next_position >= self.size:
             self.ch = ""
         else:
             self.ch = self.input[self.next_position]
@@ -44,7 +45,7 @@ class Lexer:
             return False
 
     def peek_char(self):
-        if self.next_position >= len(self.input):
+        if self.next_position >= self.size:
             return ""
         else:
             return self.input[self.next_position]
@@ -152,34 +153,4 @@ class Lexer:
 
 
 if __name__ == "__main__":
-    line = """
-let five = 5.2.36;
-let ten = 10;
-
-let add = fn(x, y) {
-  x + y;
-};
-
-let result = add(five, ten);
-!-/*5;
-5 < 10.236 > 5;
-
-if (5 < 10) {
-  return true;
-} else {
-     return false;
-}
-
-10 == 10;
-10 != .9;
-    """
-    lex = Lexer(input=line)
-    while True:
-        tok = lex.next_token()
-
-        print(tok.token_type)
-        print(tok.literal)
-        print("-----")
-
-        if tok.token_type == TokenType.EOF:
-            break
+    pass
