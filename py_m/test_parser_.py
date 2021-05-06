@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_parsing_infix_expressions
+# python -m unittest test_parser_.TestParser.test_boolean_expression
 import unittest
 import ast_  # noqa
 import lexer_
@@ -199,36 +199,6 @@ class TestParser(unittest.TestCase):
             assert type(exp) is ast_.InfixExpression
             assert self.testInfixExpression(exp, v[1], v[2], v[3])
 
-    def test_parse_let_statement(self):
-        line = """
-let x = 5;
-let ssss = 10;
-let foobar = 838383;
-        """
-
-        lex = lexer_.Lexer(input=line)
-        obj = parser_.Parser(lex)
-        program = obj.parse_program()
-        self.check_parser_errors(obj)
-
-        for v in program.statements:
-            print(v.token_literal())
-
-    def test_if(self):
-        line = """
-if (x < y) { x }
-if (5 < 10) { (1 + 2) * 3 }
-"""
-
-        lex = lexer_.Lexer(input=line)
-        obj = parser_.Parser(lex)
-        program = obj.parse_program()
-        print(program)
-        self.check_parser_errors(obj)
-
-        for v in program.statements:
-            print(v.string())
-
     def test_OperatorPrecedenceParsing(self):
         tests = [
             (
@@ -324,16 +294,75 @@ if (5 < 10) { (1 + 2) * 3 }
                 "!(true == true)",
                 "(!(true == true))",
             ),
+            # (
+            #     "a + add(b * c) + d",
+            #     "((a + add((b * c))) + d)",
+            # ),
+            # (
+            #     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+            #     "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+            # ),
+            # (
+            #     "add(a + b + c * d / f + g)",
+            #     "add((((a + b) + ((c * d) / f)) + g))",
+            # ),
         ]
 
         for v in tests:
             lex = lexer_.Lexer(input=v[0])
             obj = parser_.Parser(lex=lex)
             program = obj.parse_program()
-            self.check_parser_errors(obj)
+            assert self.check_parser_errors(obj)
             actual = program.string()
-            self.assertEqual(v[1], actual)
-            print("\n---> ", program.string())
+            assert actual == v[1]
+
+    def test_boolean_expression(self):
+        tests = [
+            ("true;", True),
+            ("false;", False),
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex=lex)
+            program = obj.parse_program()
+            assert self.check_parser_errors(obj)
+            assert len(program.statements) == 1
+            stmt = program.statements[0]
+            assert type(stmt) is ast_.ExpressionStatement
+            boolean = stmt.expression
+            assert type(boolean) is ast_.Boolean
+            assert boolean.value == v[1]
+
+    def test_parse_let_statement(self):
+        line = """
+let x = 5;
+let ssss = 10;
+let foobar = 838383;
+        """
+
+        lex = lexer_.Lexer(input=line)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        self.check_parser_errors(obj)
+
+        for v in program.statements:
+            print(v.token_literal())
+
+    def test_if(self):
+        line = """
+if (x < y) { x }
+if (5 < 10) { (1 + 2) * 3 }
+"""
+
+        lex = lexer_.Lexer(input=line)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        print(program)
+        self.check_parser_errors(obj)
+
+        for v in program.statements:
+            print(v.string())
 
     def test_infix(self):
         line = """
