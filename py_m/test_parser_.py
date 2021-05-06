@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_identifier_expression
+# python -m unittest test_parser_.TestParser.test_integer_literal_expression
 import unittest
 import ast_  # noqa
 import lexer_
@@ -119,6 +119,20 @@ class TestParser(unittest.TestCase):
         assert type(ident) is ast_.Identifier
         assert ident.value == "foobar"
         assert ident.token_literal() == "foobar"
+
+    def test_integer_literal_expression(self):
+        input = "5;"
+        lex = lexer_.Lexer(input=input)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        literal = stmt.expression
+        assert type(literal) is ast_.IntegerLiteral
+        assert literal.value == 5
+        assert literal.token_literal() == "5"
 
     def test_parse_let_statement(self):
         line = """
