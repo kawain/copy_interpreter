@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_parsing_prefix_expressions
+# python -m unittest test_parser_.TestParser.test_parsing_infix_expressions
 import unittest
 import ast_  # noqa
 import lexer_
@@ -156,6 +156,48 @@ class TestParser(unittest.TestCase):
             assert type(exp) is ast_.PrefixExpression
             assert exp.operator == v[1]
             assert self.test_literal_expression(exp.right, v[2])
+
+    def testInfixExpression(self, exp, left, operator, right):
+        assert type(exp) is ast_.InfixExpression
+        assert self.test_literal_expression(exp.left, left)
+        assert exp.operator == operator
+        assert self.test_literal_expression(exp.right, right)
+        return True
+
+    def test_parsing_infix_expressions(self):
+        tests = [
+            ("5 + 5;", 5, "+", 5),
+            ("5 - 5;", 5, "-", 5),
+            ("5 * 5;", 5, "*", 5),
+            ("5 / 5;", 5, "/", 5),
+            ("5 > 5;", 5, ">", 5),
+            ("5 < 5;", 5, "<", 5),
+            ("5 == 5;", 5, "==", 5),
+            ("5 != 5;", 5, "!=", 5),
+            ("foobar + barfoo;", "foobar", "+", "barfoo"),
+            ("foobar - barfoo;", "foobar", "-", "barfoo"),
+            ("foobar * barfoo;", "foobar", "*", "barfoo"),
+            ("foobar / barfoo;", "foobar", "/", "barfoo"),
+            ("foobar > barfoo;", "foobar", ">", "barfoo"),
+            ("foobar < barfoo;", "foobar", "<", "barfoo"),
+            ("foobar == barfoo;", "foobar", "==", "barfoo"),
+            ("foobar != barfoo;", "foobar", "!=", "barfoo"),
+            ("true == true", True, "==", True),
+            ("true != false", True, "!=", False),
+            ("false == false", False, "==", False),
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex)
+            program = obj.parse_program()
+            assert self.check_parser_errors(obj)
+            assert len(program.statements) == 1
+            stmt = program.statements[0]
+            assert type(stmt) is ast_.ExpressionStatement
+            exp = stmt.expression
+            assert type(exp) is ast_.InfixExpression
+            assert self.testInfixExpression(exp, v[1], v[2], v[3])
 
     def test_parse_let_statement(self):
         line = """
