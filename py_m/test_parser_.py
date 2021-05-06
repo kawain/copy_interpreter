@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_return_statements
+# python -m unittest test_parser_.TestParser.test_identifier_expression
 import unittest
 import ast_  # noqa
 import lexer_
@@ -105,6 +105,20 @@ class TestParser(unittest.TestCase):
             assert type(stmt) is ast_.ReturnStatement
             assert stmt.token_literal() == "return"
             assert self.test_literal_expression(stmt.return_value, v[1])
+
+    def test_identifier_expression(self):
+        input = "foobar;"
+        lex = lexer_.Lexer(input=input)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        ident = stmt.expression
+        assert type(ident) is ast_.Identifier
+        assert ident.value == "foobar"
+        assert ident.token_literal() == "foobar"
 
     def test_parse_let_statement(self):
         line = """
