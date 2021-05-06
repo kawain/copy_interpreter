@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_boolean_expression
+# python -m unittest test_parser_.TestParser.test_if_else_expression
 import unittest
 import ast_  # noqa
 import lexer_
@@ -333,6 +333,45 @@ class TestParser(unittest.TestCase):
             boolean = stmt.expression
             assert type(boolean) is ast_.Boolean
             assert boolean.value == v[1]
+
+    def test_if_expression(self):
+        input = "if (x < y) { x }"
+        lex = lexer_.Lexer(input)
+        obj = parser_.Parser(lex=lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        exp = stmt.expression
+        assert type(exp) is ast_.IfExpression
+        assert self.testInfixExpression(exp.condition, "x", "<", "y")
+        assert len(exp.consequence.statements) == 1
+        consequence = exp.consequence.statements[0]
+        assert type(consequence) is ast_.ExpressionStatement
+        assert self.test_identifier(consequence.expression, "x")
+        assert exp.alternative is None
+
+    def test_if_else_expression(self):
+        input = "if (x < y) { x } else { y }"
+        lex = lexer_.Lexer(input)
+        obj = parser_.Parser(lex=lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        exp = stmt.expression
+        assert type(exp) is ast_.IfExpression
+        assert self.testInfixExpression(exp.condition, "x", "<", "y")
+        assert len(exp.consequence.statements) == 1
+        consequence = exp.consequence.statements[0]
+        assert type(consequence) is ast_.ExpressionStatement
+        assert self.test_identifier(consequence.expression, "x")
+        assert len(exp.alternative.statements) == 1
+        alternative = exp.alternative.statements[0]
+        assert type(alternative) is ast_.ExpressionStatement
+        assert self.test_identifier(alternative.expression, "y")
 
     def test_parse_let_statement(self):
         line = """
