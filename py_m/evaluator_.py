@@ -17,6 +17,9 @@ def Eval(node):
         return object_.Float(node.value)
     elif type(node) is ast_.Boolean:
         return nativeBoolToBooleanObject(node.value)
+    elif type(node) is ast_.PrefixExpression:
+        right = Eval(node.right)
+        return evalPrefixExpression(node.operator, right)
 
     return None
 
@@ -33,3 +36,32 @@ def nativeBoolToBooleanObject(input):
     if input:
         return TRUE
     return FALSE
+
+
+def evalPrefixExpression(operator, right):
+    if operator == "!":
+        return evalBangOperatorExpression(right)
+    elif operator == "-":
+        return evalMinusPrefixOperatorExpression(right)
+    else:
+        return NULL
+
+
+def evalBangOperatorExpression(right):
+    if right == TRUE:
+        return FALSE
+    elif right == FALSE:
+        return TRUE
+    elif right == NULL:
+        return TRUE
+    else:
+        return FALSE
+
+
+def evalMinusPrefixOperatorExpression(right):
+    if right.Type() == object_.INTEGER_OBJ:
+        return object_.Integer(-right.value)
+    elif right.Type() == object_.FLOAT_OBJ:
+        return object_.Float(-right.value)
+    else:
+        return NULL

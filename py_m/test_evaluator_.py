@@ -1,4 +1,4 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_EvalBooleanExpression
+# python -m unittest test_evaluator_.TestEvaluator.test_EvalFloatExpression
 import unittest
 import lexer_
 import parser_
@@ -33,8 +33,8 @@ class TestEvaluator(unittest.TestCase):
         tests = [
             ("5", 5),
             ("10", 10),
-            # ("-5", -5),
-            # ("-10", -10),
+            ("-5", -5),
+            ("-10", -10),
             # ("5 + 5 + 5 + 5 - 10", 10),
             # ("2 * 2 * 2 * 2 * 2", 32),
             # ("-50 + 100 + -50", 0),
@@ -56,6 +56,8 @@ class TestEvaluator(unittest.TestCase):
         tests = [
             ("5.", 5.0),
             ("3.14", 3.14),
+            ("-3.14", -3.14),
+            ("-.14", -0.14),
         ]
 
         for v in tests:
@@ -85,6 +87,19 @@ class TestEvaluator(unittest.TestCase):
             # ("(1 > 2) == false", true),
         ]
 
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert self.test_BooleanObject(evaluated, v[1])
+
+    def test_BangOperator(self):
+        tests = [
+            ("!true", False),
+            ("!false", True),
+            ("!5", False),
+            ("!!true", True),
+            ("!!false", False),
+            ("!!5", True),
+        ]
         for v in tests:
             evaluated = self.test_Eval(v[0])
             assert self.test_BooleanObject(evaluated, v[1])
