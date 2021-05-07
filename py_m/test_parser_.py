@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_if_else_expression
+# python -m unittest test_parser_.TestParser.test_function_literal_parsing
 import unittest
 import ast_  # noqa
 import lexer_
@@ -373,6 +373,34 @@ class TestParser(unittest.TestCase):
         assert type(alternative) is ast_.ExpressionStatement
         assert self.test_identifier(alternative.expression, "y")
 
+    def test_function_literal_parsing(self):
+        line = "fn(x, y) { x + y; }"
+
+        lex = lexer_.Lexer(input=line)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        function = stmt.expression
+        assert type(function) is ast_.FunctionLiteral
+        assert len(function.parameters) == 2
+        assert self.test_literal_expression(function.parameters[0], "x")
+        assert self.test_literal_expression(function.parameters[1], "y")
+        assert len(function.body.statements) == 1
+        body_stmt = function.body.statements[0]
+        assert type(body_stmt) is ast_.ExpressionStatement
+        assert self.testInfixExpression(body_stmt.expression, "x", "+", "y")
+
+        for v in program.statements:
+            print(v.string())
+            print(type(v))
+            print(type(v.expression))
+            print(type(v.expression.token))
+            print(type(v.expression.string()))
+            print(v.expression.string())
+
     def test_parse_let_statement(self):
         line = """
 let x = 5;
@@ -505,22 +533,6 @@ return 838383;
             print(type(v.expression))
             print(type(v.expression.operator))
             print(type(v.expression.right))
-
-    def test_functionliteral_parsing(self):
-        line = "fn(x, y) { x + y; }"
-
-        lex = lexer_.Lexer(input=line)
-        obj = parser_.Parser(lex)
-        program = obj.parse_program()
-        self.check_parser_errors(obj)
-
-        for v in program.statements:
-            print(v.string())
-            print(type(v))
-            print(type(v.expression))
-            print(type(v.expression.token))
-            print(type(v.expression.string()))
-            print(v.expression.string())
 
     def test_function_parameter_parsing(self):
         tests = [
