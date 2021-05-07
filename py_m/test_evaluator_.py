@@ -1,4 +1,4 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_EvalIntegerExpression
+# python -m unittest test_evaluator_.TestEvaluator.test_EvalBooleanExpression
 import unittest
 import lexer_
 import parser_
@@ -16,6 +16,16 @@ class TestEvaluator(unittest.TestCase):
 
     def test_IntegerObject(self, obj, expected):
         assert type(obj) is object_.Integer
+        assert obj.value == expected
+        return True
+
+    def test_FloatObject(self, obj, expected):
+        assert type(obj) is object_.Float
+        assert obj.value == expected
+        return True
+
+    def test_BooleanObject(self, obj, expected):
+        assert type(obj) is object_.Boolean
         assert obj.value == expected
         return True
 
@@ -41,3 +51,40 @@ class TestEvaluator(unittest.TestCase):
         for v in tests:
             evaluated = self.test_Eval(v[0])
             assert self.test_IntegerObject(evaluated, v[1])
+
+    def test_EvalFloatExpression(self):
+        tests = [
+            ("5.", 5.0),
+            ("3.14", 3.14),
+        ]
+
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert self.test_FloatObject(evaluated, v[1])
+
+    def test_EvalBooleanExpression(self):
+        tests = [
+            ("true", True),
+            ("false", False),
+            # ("1 < 2", true),
+            # ("1 > 2", false),
+            # ("1 < 1", false),
+            # ("1 > 1", false),
+            # ("1 == 1", true),
+            # ("1 != 1", false),
+            # ("1 == 2", false),
+            # ("1 != 2", true),
+            # ("true == true", true),
+            # ("false == false", true),
+            # ("true == false", false),
+            # ("true != false", true),
+            # ("false != true", true),
+            # ("(1 < 2) == true", true),
+            # ("(1 < 2) == false", false),
+            # ("(1 > 2) == true", false),
+            # ("(1 > 2) == false", true),
+        ]
+
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert self.test_BooleanObject(evaluated, v[1])
