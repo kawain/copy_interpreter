@@ -2,6 +2,7 @@ import sys
 import token_
 import lexer_
 import parser_
+import evaluator_
 
 
 PROMPT = ">> "
@@ -36,7 +37,9 @@ def start():
                 print(print_parser_errors(p.Errors()))
                 continue
 
-            print(program.string())
+            evaluated = evaluator_.Eval(program)
+            if evaluated is not None:
+                print(evaluated.Inspect())
 
     except KeyboardInterrupt:
         sys.exit()
