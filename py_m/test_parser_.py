@@ -1,6 +1,6 @@
-# python -m unittest test_parser_.TestParser.test_function_literal_parsing
+# python -m unittest test_parser_.TestParser.test_call_expression_parsing
 import unittest
-import ast_  # noqa
+import ast_
 import lexer_
 import parser_
 
@@ -294,18 +294,18 @@ class TestParser(unittest.TestCase):
                 "!(true == true)",
                 "(!(true == true))",
             ),
-            # (
-            #     "a + add(b * c) + d",
-            #     "((a + add((b * c))) + d)",
-            # ),
-            # (
-            #     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-            #     "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
-            # ),
-            # (
-            #     "add(a + b + c * d / f + g)",
-            #     "add((((a + b) + ((c * d) / f)) + g))",
-            # ),
+            (
+                "a + add(b * c) + d",
+                "((a + add((b * c))) + d)",
+            ),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g))",
+            ),
         ]
 
         for v in tests:
@@ -420,6 +420,44 @@ class TestParser(unittest.TestCase):
             assert len(function.parameters) == len(v[1])
             for v2, v3 in zip(function.parameters, v[1]):
                 assert self.test_literal_expression(v2, v3)
+
+    def test_call_expression_parsing(self):
+        input = "add(1, 2 * 3, 4 + 5);"
+        lex = lexer_.Lexer(input)
+        obj = parser_.Parser(lex=lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        exp = stmt.expression
+        assert type(exp) is ast_.CallExpression
+        assert self.test_identifier(exp.function, "add")
+        assert len(exp.arguments) == 3
+        assert self.test_literal_expression(exp.arguments[0], 1)
+        assert self.testInfixExpression(exp.arguments[1], 2, "*", 3)
+        assert self.testInfixExpression(exp.arguments[2], 4, "+", 5)
+
+    def test_call_expression_parameter_parsing(self):
+        tests = [
+            ("add();", "add", []),
+            ("add(1);", "add", ["1"]),
+            ("add(1, 2 * 3, 4 + 5);", "add", ["1", "(2 * 3)", "(4 + 5)"]),
+        ]
+
+        for v in tests:
+            lex = lexer_.Lexer(input=v[0])
+            obj = parser_.Parser(lex)
+            program = obj.parse_program()
+            assert self.check_parser_errors(obj)
+            stmt = program.statements[0]
+            assert type(stmt) is ast_.ExpressionStatement
+            exp = stmt.expression
+            assert type(exp) is ast_.CallExpression
+            assert self.test_identifier(exp.function, v[1])
+            assert len(exp.arguments) == len(v[2])
+            for i, arg in enumerate(v[2]):
+                assert exp.arguments[i].string() == arg
 
     def test_parse_let_statement(self):
         line = """

@@ -338,6 +338,38 @@ class FunctionLiteral(Expression):
         return "FunctionLiteral(Expression)"
 
 
+class CallExpression(Expression):
+    """呼び出し式"""
+
+    def __init__(self, token=None, function=None, arguments=[]):
+        self.token = token
+        # Identifier or FunctionLiteral
+        self.function = function
+        # []Expression
+        self.arguments = arguments
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        args = []
+        for v in self.arguments:
+            args.append(v.string())
+
+        out = self.function.string()
+        out += "("
+        out += ", ".join(args)
+        out += ")"
+
+        return out
+
+    def __str__(self):
+        return "CallExpression(Expression)"
+
+
 if __name__ == "__main__":
     from token_ import Token, TokenType
     ls = LetStatement(

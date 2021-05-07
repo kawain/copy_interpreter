@@ -1,6 +1,8 @@
 import sys
-from token_ import TokenType
-from lexer_ import Lexer
+import token_
+import lexer_
+import parser_
+
 
 PROMPT = ">> "
 
@@ -8,9 +10,17 @@ PROMPT = ">> "
 def _print(lex):
     while True:
         tok = lex.next_token()
-        if tok.token_type == TokenType.EOF:
+        if tok.token_type == token_.TokenType.EOF:
             break
         print(f"{{Type:{tok.token_type} Literal:{tok.literal}}}")
+
+
+def print_parser_errors(errors):
+    out = "Woops! We ran into some monkey business here!\n"
+    out += " parser errors:\n"
+    for v in errors:
+        out += f"\t{v}\n"
+    return out
 
 
 def start():
@@ -19,7 +29,14 @@ def start():
         while True:
             print(PROMPT, end="")
             line = input()
-            lex = Lexer(input=line)
-            _print(lex)
+            lex = lexer_.Lexer(line)
+            p = parser_.Parser(lex)
+            program = p.parse_program()
+            if len(p.Errors()) != 0:
+                print(print_parser_errors(p.Errors()))
+                continue
+
+            print(program.string())
+
     except KeyboardInterrupt:
         sys.exit()

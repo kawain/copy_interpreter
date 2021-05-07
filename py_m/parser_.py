@@ -56,6 +56,7 @@ class Parser:
         self.infix_parse_fns[TokenType.NOT_EQ] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.LT] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.GT] = self.parse_infix_expression
+        self.infix_parse_fns[TokenType.LPAREN] = self.parse_call_expression
 
         self.next_token()
         self.next_token()
@@ -318,6 +319,31 @@ class Parser:
             return None
 
         return identifiers
+
+    def parse_call_expression(self, function):
+        exp = ast_.CallExpression(token=self.cur_token, function=function)
+        exp.arguments = self.parse_call_arguments()
+        return exp
+
+    def parse_call_arguments(self):
+        args = []
+
+        if self.peek_token_is(TokenType.RPAREN):
+            self.next_token()
+            return args
+
+        self.next_token()
+        args.append(self.parse_expression(priority["LOWEST"]))
+
+        while self.peek_token_is(TokenType.COMMA):
+            self.next_token()
+            self.next_token()
+            args.append(self.parse_expression(priority["LOWEST"]))
+
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+
+        return args
 
 
 if __name__ == "__main__":
