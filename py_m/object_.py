@@ -112,6 +112,35 @@ class Error(Object):
         return "Error(Object)"
 
 
+class Function(Object):
+    """関数"""
+
+    def __init__(self, parameters=[], body=None, env=None):
+        self.parameters = parameters
+        self.body = body
+        self.env = env
+
+    def Type(self):
+        return FUNCTION_OBJ
+
+    def Inspect(self):
+        params = []
+        for v in self.parameters:
+            params.append(v.string())
+
+        out = "fn"
+        out += "("
+        out += ", ".join(params)
+        out += ") {\n"
+        out += self.body.string()
+        out += "\n}"
+
+        return out
+
+    def __str__(self):
+        return "Function(Object)"
+
+
 if __name__ == "__main__":
     obj = Null()
     print(obj.Type())

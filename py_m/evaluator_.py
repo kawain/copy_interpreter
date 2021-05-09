@@ -46,6 +46,10 @@ def Eval(node, env):
         env.Set(node.name.value, val)
     elif type(node) is ast_.Identifier:
         return evalIdentifier(node, env)
+    elif type(node) is ast_.FunctionLiteral:
+        params = node.parameters
+        body = node.body
+        return object_.Function(parameters=params, body=body, env=env)
 
     return None
 

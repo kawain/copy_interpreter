@@ -1,4 +1,4 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_LetStatements
+# python -m unittest test_evaluator_.TestEvaluator.test_FunctionObject
 import unittest
 import lexer_
 import parser_
@@ -216,3 +216,12 @@ if (10 > 1) {
         for v in tests:
             evaluated = self.test_Eval(v[0])
             assert self.test_IntegerObject(evaluated, v[1])
+
+    def test_FunctionObject(self):
+        input = "fn(x) { x + 2; };"
+        evaluated = self.test_Eval(input)
+        assert type(evaluated) is object_.Function
+        assert len(evaluated.parameters) == 1
+        assert evaluated.parameters[0].string() == "x"
+        expectedBody = "(x + 2)"
+        assert evaluated.body.string() == expectedBody
