@@ -24,6 +24,10 @@ def Eval(node):
         left = Eval(node.left)
         right = Eval(node.right)
         return evalInfixExpression(node.operator, left, right)
+    elif type(node) is ast_.BlockStatement:
+        return evalBlockStatement(node)
+    elif type(node) is ast_.IfExpression:
+        return evalIfExpression(node)
 
     return None
 
@@ -104,3 +108,36 @@ def evalIntegerInfixExpression(operator, left, right):
         return nativeBoolToBooleanObject(left_val != right_val)
     else:
         return NULL
+
+
+def evalBlockStatement(block):
+    result = None
+    for v in block.statements:
+        result = Eval(v)
+        if result is not None:
+            rt = result.Type()
+            if rt == object_.RETURN_VALUE_OBJ or rt == object_.ERROR_OBJ:
+                return result
+    return result
+
+
+def evalIfExpression(ie):
+    # ie ast_.IfExpression
+    condition = Eval(ie.condition)
+    if isTruthy(condition):
+        return Eval(ie.consequence)
+    elif ie.alternative is not None:
+        return Eval(ie.alternative)
+    else:
+        return NULL
+
+
+def isTruthy(obj):
+    if obj == NULL:
+        return False
+    elif obj == TRUE:
+        return True
+    elif obj == FALSE:
+        return False
+    else:
+        True

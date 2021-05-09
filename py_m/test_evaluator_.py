@@ -1,4 +1,4 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_EvalIntegerExpression
+# python -m unittest test_evaluator_.TestEvaluator.test_IfElseExpressions
 import unittest
 import lexer_
 import parser_
@@ -103,3 +103,27 @@ class TestEvaluator(unittest.TestCase):
         for v in tests:
             evaluated = self.test_Eval(v[0])
             assert self.test_BooleanObject(evaluated, v[1])
+
+    def test_NullObject(self, obj):
+        assert obj == evaluator_.NULL
+        return True
+
+    def test_IfElseExpressions(self):
+        tests = [
+            ("if (true) { 10 }", 10),
+            ("if (false) { 10 }", None),
+            ("if (1) { 10 }", 10),
+            ("if (1 < 2) { 10 }", 10),
+            ("if (1 > 2) { 10 }", None),
+            ("if (1 > 2) { 10 } else { 20 }", 20),
+            ("if (1 < 2) { 10 } else { 20 }", 10),
+        ]
+
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            try:
+                integer = int(v[1])
+                assert self.test_IntegerObject(evaluated, integer)
+            except Exception as e:
+                _ = e
+                assert self.test_NullObject(evaluated)
