@@ -96,6 +96,22 @@ class ReturnValue(Object):
         return "ReturnValue(Object)"
 
 
+class Error(Object):
+    """エラー"""
+
+    def __init__(self, message):
+        self.message = message
+
+    def Type(self):
+        return ERROR_OBJ
+
+    def Inspect(self):
+        return "ERROR: " + self.message
+
+    def __str__(self):
+        return "Error(Object)"
+
+
 if __name__ == "__main__":
     obj = Null()
     print(obj.Type())

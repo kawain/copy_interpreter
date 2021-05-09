@@ -1,4 +1,4 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_ReturnStatements
+# python -m unittest test_evaluator_.TestEvaluator.test_ErrorHandling
 import unittest
 import lexer_
 import parser_
@@ -149,3 +149,55 @@ if (10 > 1) {
         for v in tests:
             evaluated = self.test_Eval(v[0])
             assert self.test_IntegerObject(evaluated, v[1])
+
+    def test_ErrorHandling(self):
+        tests = [
+            (
+                "5 + true;",
+                "type mismatch: INTEGER + BOOLEAN",
+            ),
+            (
+                "5 + true; 5;",
+                "type mismatch: INTEGER + BOOLEAN",
+            ),
+            (
+                "-true",
+                "unknown operator: -BOOLEAN",
+            ),
+            (
+                "true + false;",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            # (
+            # "true + false + true + false;",
+            # "unknown operator: BOOLEAN + BOOLEAN",
+            # ),
+            (
+                "5; true + false; 5",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            (
+                "if (10 > 1) { true + false; }",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            ("""
+if (10 > 1) {
+  if (10 > 1) {
+    return true + false;
+  }
+
+  return 1;
+}
+""",
+             "unknown operator: BOOLEAN + BOOLEAN",
+             ),
+            # (
+            # "foobar",
+            # "identifier not found: foobar",
+            # ),
+        ]
+
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert type(evaluated) is object_.Error
+            assert evaluated.message == v[1]

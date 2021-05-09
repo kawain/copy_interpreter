@@ -19,10 +19,16 @@ def Eval(node):
         return nativeBoolToBooleanObject(node.value)
     elif type(node) is ast_.PrefixExpression:
         right = Eval(node.right)
+        if isError(right):
+            return right
         return evalPrefixExpression(node.operator, right)
     elif type(node) is ast_.InfixExpression:
         left = Eval(node.left)
+        if isError(left):
+            return left
         right = Eval(node.right)
+        if isError(right):
+            return right
         return evalInfixExpression(node.operator, left, right)
     elif type(node) is ast_.BlockStatement:
         return evalBlockStatement(node)
@@ -30,6 +36,8 @@ def Eval(node):
         return evalIfExpression(node)
     elif type(node) is ast_.ReturnStatement:
         val = Eval(node.return_value)
+        if isError(val):
+            return val
         return object_.ReturnValue(val)
 
     return None
@@ -41,6 +49,8 @@ def evalProgram(program):
         result = Eval(v)
         if type(result) is object_.ReturnValue:
             return result.value
+        elif type(result) is object_.Error:
+            return result
 
     return result
 
@@ -77,7 +87,7 @@ def evalMinusPrefixOperatorExpression(right):
     elif right.Type() == object_.FLOAT_OBJ:
         return object_.Float(-right.value)
     else:
-        return NULL
+        return newError("unknown operator", "-" + right.Type())
 
 
 def evalInfixExpression(operator, left, right):
@@ -87,8 +97,10 @@ def evalInfixExpression(operator, left, right):
         return nativeBoolToBooleanObject(left == right)
     elif operator == "!=":
         return nativeBoolToBooleanObject(left != right)
+    elif left.Type() != right.Type():
+        return newError("type mismatch", left.Type(), operator, right.Type())
     else:
-        NULL
+        return newError("unknown operator", left.Type(), operator, right.Type())
 
 
 def evalIntegerInfixExpression(operator, left, right):
@@ -112,14 +124,13 @@ def evalIntegerInfixExpression(operator, left, right):
     elif operator == "!=":
         return nativeBoolToBooleanObject(left_val != right_val)
     else:
-        return NULL
+        return newError("unknown operator", left.Type(), operator, right.Type())
 
 
 def evalBlockStatement(block):
     result = None
     for v in block.statements:
         result = Eval(v)
-        # 変更
         if result is not None:
             rt = result.Type()
             if rt == object_.RETURN_VALUE_OBJ or rt == object_.ERROR_OBJ:
@@ -130,6 +141,8 @@ def evalBlockStatement(block):
 def evalIfExpression(ie):
     # ie ast_.IfExpression
     condition = Eval(ie.condition)
+    if isError(condition):
+        return condition
     if isTruthy(condition):
         return Eval(ie.consequence)
     elif ie.alternative is not None:
@@ -147,3 +160,13 @@ def isTruthy(obj):
         return False
     else:
         True
+
+
+def newError(format, *a):
+    return object_.Error(f"{format}: {' '.join(a)}")
+
+
+def isError(obj):
+    if obj is not None:
+        return obj.Type() == object_.ERROR_OBJ
+    return False
