@@ -1,9 +1,10 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_ErrorHandling
+# python -m unittest test_evaluator_.TestEvaluator.test_LetStatements
 import unittest
 import lexer_
 import parser_
 import object_
 import evaluator_
+import env_
 
 
 class TestEvaluator(unittest.TestCase):
@@ -12,7 +13,9 @@ class TestEvaluator(unittest.TestCase):
         lex = lexer_.Lexer(input)
         p = parser_.Parser(lex)
         program = p.parse_program()
-        return evaluator_.Eval(program)
+        env = env_.Environment()
+
+        return evaluator_.Eval(program, env)
 
     def test_IntegerObject(self, obj, expected):
         assert type(obj) is object_.Integer
@@ -191,13 +194,25 @@ if (10 > 1) {
 """,
              "unknown operator: BOOLEAN + BOOLEAN",
              ),
-            # (
-            # "foobar",
-            # "identifier not found: foobar",
-            # ),
+            (
+                "foobar",
+                "identifier not found: foobar",
+            ),
         ]
 
         for v in tests:
             evaluated = self.test_Eval(v[0])
             assert type(evaluated) is object_.Error
             assert evaluated.message == v[1]
+
+    def test_LetStatements(self):
+        tests = [
+            ("let a = 5; a;", 5),
+            ("let a = 5 * 5; a;", 25),
+            ("let a = 5; let b = a; b;", 5),
+            ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+        ]
+
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert self.test_IntegerObject(evaluated, v[1])

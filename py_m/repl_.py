@@ -3,6 +3,7 @@ import token_
 import lexer_
 import parser_
 import evaluator_
+import env_
 
 
 PROMPT = ">> "
@@ -25,6 +26,7 @@ def print_parser_errors(errors):
 
 
 def start():
+    env = env_.Environment()
 
     try:
         while True:
@@ -37,7 +39,7 @@ def start():
                 print(print_parser_errors(p.Errors()))
                 continue
 
-            evaluated = evaluator_.Eval(program)
+            evaluated = evaluator_.Eval(program, env)
             if evaluated is not None:
                 print(evaluated.Inspect())
 
