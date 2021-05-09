@@ -13,7 +13,7 @@ class TestEvaluator(unittest.TestCase):
         lex = lexer_.Lexer(input)
         p = parser_.Parser(lex)
         program = p.parse_program()
-        env = env_.Environment()
+        env = env_.NewEnvironment()
 
         return evaluator_.Eval(program, env)
 
@@ -225,3 +225,31 @@ if (10 > 1) {
         assert evaluated.parameters[0].string() == "x"
         expectedBody = "(x + 2)"
         assert evaluated.body.string() == expectedBody
+
+    def test_FunctionApplication(self):
+        tests = [
+            ("let identity = fn(x) { x; }; identity(5);", 5),
+            ("let identity = fn(x) { return x; }; identity(5);", 5),
+            ("let double = fn(x) { x * 2; }; double(5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+            ("fn(x) { x; }(5)", 5),
+        ]
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert self.test_IntegerObject(evaluated, v[1])
+
+    def test_Closures(self):
+        input = """
+let newAdder = fn(x) {
+    fn(y) { x + y };
+};
+
+let addTwo = newAdder(2);
+x
+"""
+
+        evaluated = self.test_Eval(input)
+        # assert self.test_IntegerObject(evaluated, 4)
+        assert type(evaluated) is object_.Error
+        assert evaluated.message == "identifier not found: x"

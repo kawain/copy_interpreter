@@ -26,7 +26,7 @@ def print_parser_errors(errors):
 
 
 def start():
-    env = env_.Environment()
+    env = env_.NewEnvironment()
 
     try:
         while True:

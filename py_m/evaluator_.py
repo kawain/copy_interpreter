@@ -1,5 +1,6 @@
 import ast_
 import object_
+import env_
 
 NULL = object_.Null()
 TRUE = object_.Boolean(True)
@@ -50,6 +51,15 @@ def Eval(node, env):
         params = node.parameters
         body = node.body
         return object_.Function(parameters=params, body=body, env=env)
+    elif type(node) is ast_.CallExpression:
+        function = Eval(node.function, env)
+        if isError(function):
+            return function
+        args = evalExpressions(node.arguments, env)
+        if len(args) == 1 and isError(args[0]):
+            return args[0]
+
+        return applyFunction(function, args)
 
     return None
 
@@ -188,3 +198,38 @@ def evalIdentifier(node, env):
     if val is None:
         return newError("identifier not found: " + node.value)
     return val
+
+
+def evalExpressions(exps, env):
+    result = []
+    for v in exps:
+        evaluated = Eval(v, env)
+        if isError(evaluated):
+            return []
+        result.append(evaluated)
+    return result
+
+
+def applyFunction(fn, args):
+    if type(fn) is not object_.Function:
+        return newError("not a function: ", fn.Type())
+
+    extendedEnv = extendFunctionEnv(fn, args)
+    evaluated = Eval(fn.body, extendedEnv)
+    return unwrapReturnValue(evaluated)
+
+
+def extendFunctionEnv(fn, args):
+    env = env_.NewEnclosedEnvironment(fn.env)
+
+    for paramIdx, param in enumerate(fn.parameters):
+        env.Set(param.value, args[paramIdx])
+
+    return env
+
+
+def unwrapReturnValue(obj):
+    if type(obj) is object_.ReturnValue:
+        return obj.value
+
+    return obj
