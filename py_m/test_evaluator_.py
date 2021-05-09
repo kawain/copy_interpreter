@@ -1,4 +1,4 @@
-# python -m unittest test_evaluator_.TestEvaluator.test_IfElseExpressions
+# python -m unittest test_evaluator_.TestEvaluator.test_ReturnStatements
 import unittest
 import lexer_
 import parser_
@@ -127,3 +127,25 @@ class TestEvaluator(unittest.TestCase):
             except Exception as e:
                 _ = e
                 assert self.test_NullObject(evaluated)
+
+    def test_ReturnStatements(self):
+        tests = [
+            ("return 10;", 10),
+            ("return 10; 9;", 10),
+            ("return 2 * 5; 9;", 10),
+            ("9; return 2 * 5; 9;", 10),
+            ("""
+if (10 > 1) {
+  if (10 > 1) {
+    return 10;
+  }
+
+  return 1;
+}""",
+             10
+             ),
+        ]
+
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+            assert self.test_IntegerObject(evaluated, v[1])

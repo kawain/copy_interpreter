@@ -8,7 +8,7 @@ FALSE = object_.Boolean(False)
 
 def Eval(node):
     if type(node) is ast_.Program:
-        return eval_statement(node.statements)
+        return evalProgram(node)
     elif type(node) is ast_.ExpressionStatement:
         return Eval(node.expression)
     elif type(node) is ast_.IntegerLiteral:
@@ -28,14 +28,19 @@ def Eval(node):
         return evalBlockStatement(node)
     elif type(node) is ast_.IfExpression:
         return evalIfExpression(node)
+    elif type(node) is ast_.ReturnStatement:
+        val = Eval(node.return_value)
+        return object_.ReturnValue(val)
 
     return None
 
 
-def eval_statement(stmts):
+def evalProgram(program):
     result = None
-    for v in stmts:
+    for v in program.statements:
         result = Eval(v)
+        if type(result) is object_.ReturnValue:
+            return result.value
 
     return result
 
@@ -114,6 +119,7 @@ def evalBlockStatement(block):
     result = None
     for v in block.statements:
         result = Eval(v)
+        # 変更
         if result is not None:
             rt = result.Type()
             if rt == object_.RETURN_VALUE_OBJ or rt == object_.ERROR_OBJ:

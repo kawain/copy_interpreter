@@ -80,6 +80,22 @@ class Null(Object):
         return "Null(Object)"
 
 
+class ReturnValue(Object):
+    """return文"""
+
+    def __init__(self, value):
+        self.value = value
+
+    def Type(self):
+        return RETURN_VALUE_OBJ
+
+    def Inspect(self):
+        return self.value.Inspect()
+
+    def __str__(self):
+        return "ReturnValue(Object)"
+
+
 if __name__ == "__main__":
     obj = Null()
     print(obj.Type())
