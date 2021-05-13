@@ -198,6 +198,10 @@ if (10 > 1) {
                 "foobar",
                 "identifier not found: foobar",
             ),
+            (
+                '"Hello" - "World"',
+                "unknown operator: STRING - STRING",
+            ),
         ]
 
         for v in tests:
@@ -260,5 +264,12 @@ x
         assert type(evaluated) is object_.String
         assert evaluated.value == "Hello World!"
 
+    def test_StringConcatenation(self):
+        input = '"Hello" + " " + "World!"'
+        evaluated = self.test_Eval(input)
+        assert type(evaluated) is object_.String
+        assert evaluated.value == "Hello World!"
 
-# python -m unittest test_evaluator_.TestEvaluator.test_StringLiteral
+
+# python -m unittest test_evaluator_.TestEvaluator.test_StringConcatenation
+# python -m unittest test_evaluator_.TestEvaluator.test_ErrorHandling

@@ -122,6 +122,8 @@ def evalInfixExpression(operator, left, right):
         return nativeBoolToBooleanObject(left != right)
     elif left.Type() != right.Type():
         return newError("type mismatch: ", left.Type(), operator, right.Type())
+    elif left.Type() == object_.STRING_OBJ and right.Type() == object_.STRING_OBJ:
+        return evalStringInfixExpression(operator, left, right)
     else:
         return newError("unknown operator: ", left.Type(), operator, right.Type())
 
@@ -235,3 +237,11 @@ def unwrapReturnValue(obj):
         return obj.value
 
     return obj
+
+
+def evalStringInfixExpression(operator, left, right):
+    if operator != "+":
+        return newError("unknown operator: ", left.Type(), operator, right.Type())
+    leftVal = left.value
+    rightVal = right.value
+    return object_.String(leftVal + rightVal)
