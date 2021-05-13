@@ -63,6 +63,14 @@ class Lexer:
 
         return self.input[position:self.position]
 
+    def read_string(self):
+        position = self.position + 1
+        while True:
+            self.read_char()
+            if self.ch == '"' or self.ch == "":
+                break
+        return self.input[position:self.position]
+
     def next_token(self):
         tok = Token()
 
@@ -120,6 +128,9 @@ class Lexer:
         elif self.ch == ")":
             tok.token_type = TokenType.RPAREN
             tok.literal = self.ch
+        elif self.ch == '"':
+            tok.token_type = TokenType.STRING
+            tok.literal = self.read_string()
         elif self.ch == "":
             tok.token_type = TokenType.EOF
             tok.literal = ""

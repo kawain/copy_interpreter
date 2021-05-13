@@ -27,6 +27,9 @@ if (5 < 10) {
 
 10 == 10;
 10 != .9;
+"foobar"
+"foo bar"
+
     """
         lex = lexer_.Lexer(input=line)
         while True:
@@ -59,6 +62,11 @@ if (5 < 10) {
 
 10 == 10;
 10 != 9;
+
+"foobar"
+"foo bar"
+"日本語"
+
         """
 
         tests = [
@@ -135,6 +143,9 @@ if (5 < 10) {
             (token_.TokenType.NOT_EQ, "!="),
             (token_.TokenType.INT, "9"),
             (token_.TokenType.SEMICOLON, ";"),
+            (token_.TokenType.STRING, "foobar"),
+            (token_.TokenType.STRING, "foo bar"),
+            (token_.TokenType.STRING, "日本語"),
             (token_.TokenType.EOF, ""),
         ]
 

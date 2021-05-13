@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_call_expression_parsing
+# python -m unittest test_parser_.TestParser.test_TestStringLiteralExpression
 import unittest
 import ast_
 import lexer_
@@ -592,6 +592,19 @@ return 838383;
             print(type(v.expression.operator))
             print(type(v.expression.right))
 
+    def test_TestStringLiteralExpression(self):
+        input = '"hello world";'
+        lex = lexer_.Lexer(input)
+        obj = parser_.Parser(lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        literal = stmt.expression
+        assert type(literal) is ast_.StringLiteral
+        assert literal.value == "hello world"
 
+
+# python -m unittest test_parser_.TestParser.test_TestStringLiteralExpression
 if __name__ == '__main__':
     unittest.main()

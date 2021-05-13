@@ -60,6 +60,8 @@ def Eval(node, env):
             return args[0]
 
         return applyFunction(function, args)
+    elif type(node) is ast_.StringLiteral:
+        return object_.String(node.value)
 
     return None
 

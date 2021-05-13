@@ -253,3 +253,12 @@ x
         # assert self.test_IntegerObject(evaluated, 4)
         assert type(evaluated) is object_.Error
         assert evaluated.message == "identifier not found: x"
+
+    def test_StringLiteral(self):
+        input = '"Hello World!"'
+        evaluated = self.test_Eval(input)
+        assert type(evaluated) is object_.String
+        assert evaluated.value == "Hello World!"
+
+
+# python -m unittest test_evaluator_.TestEvaluator.test_StringLiteral

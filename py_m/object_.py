@@ -7,6 +7,7 @@ FLOAT_OBJ = "FLOAT"
 BOOLEAN_OBJ = "BOOLEAN"
 RETURN_VALUE_OBJ = "RETURN_VALUE"
 FUNCTION_OBJ = "FUNCTION"
+STRING_OBJ = "STRING"
 
 
 class Object(metaclass=ABCMeta):
@@ -139,6 +140,22 @@ class Function(Object):
 
     def __str__(self):
         return "Function(Object)"
+
+
+class String(Object):
+    """return文"""
+
+    def __init__(self, value):
+        self.value = value
+
+    def Type(self):
+        return STRING_OBJ
+
+    def Inspect(self):
+        return self.value
+
+    def __str__(self):
+        return "String(Object)"
 
 
 if __name__ == "__main__":

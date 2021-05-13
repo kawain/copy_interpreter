@@ -33,6 +33,8 @@ class TokenType(Enum):
     RETURN = auto()   # "RETURN"
     EOF = auto()      # 入力の終わりを表すトークン
 
+    STRING = auto()  # 文字列
+
 
 class Token:
     """字句"""

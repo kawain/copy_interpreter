@@ -370,6 +370,26 @@ class CallExpression(Expression):
         return "CallExpression(Expression)"
 
 
+class StringLiteral(Expression):
+    """文字列"""
+
+    def __init__(self, token=None, value=None):
+        self.token = token
+        self.value = value
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        return self.token.literal
+
+    def __str__(self):
+        return "StringLiteral(Expression)"
+
+
 if __name__ == "__main__":
     from token_ import Token, TokenType
     ls = LetStatement(

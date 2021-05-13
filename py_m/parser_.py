@@ -46,7 +46,8 @@ class Parser:
         self.prefix_parse_fns[TokenType.FALSE] = self.parse_boolean
         self.prefix_parse_fns[TokenType.LPAREN] = self.parse_grouped_expression
         self.prefix_parse_fns[TokenType.IF] = self.parse_if_expression
-        self.prefix_parse_fns[TokenType.FUNCTION] = self.parse_functionLiteral
+        self.prefix_parse_fns[TokenType.FUNCTION] = self.parse_function_literal
+        self.prefix_parse_fns[TokenType.STRING] = self.parse_string_literal
         # 中置構文解析関数追加
         self.infix_parse_fns[TokenType.PLUS] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.MINUS] = self.parse_infix_expression
@@ -278,7 +279,7 @@ class Parser:
     def __str__(self):
         return "Parser()"
 
-    def parse_functionLiteral(self):
+    def parse_function_literal(self):
         lit = ast_.FunctionLiteral(token=self.cur_token)
 
         if not self.expect_peek(TokenType.LPAREN):
@@ -344,6 +345,9 @@ class Parser:
             return None
 
         return args
+
+    def parse_string_literal(self):
+        return ast_.StringLiteral(self.cur_token, self.cur_token.literal)
 
 
 if __name__ == "__main__":
