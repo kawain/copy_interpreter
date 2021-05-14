@@ -56,10 +56,6 @@ when isMainModule:
   echo keywords["fn"]
   echo lookupIdent("else")
   echo lookupIdent("elses")
-
   var s = "abcd"
   echo s[1]
   echo type s[1]
-
-
-

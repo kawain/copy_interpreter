@@ -135,38 +135,3 @@ proc nextToken*(lex: Lexer): Token =
       result.literal = $lex.ch
 
   lex.readChar()
-
-when isMainModule:
-  var a = """
-let five = 5;
-let ten = 10;
-
-let add = fn(x, y) {
-  x + y;
-};
-
-let result = add(five, ten);
-!-/*5;
-5 < 10 > 5;
-
-if (5 < 10) {
-	return true;
-} else {
-	return false;
-}
-
-10.2.3 == 10.56;
-10 != 9.12;
-  """
-  var o = LexerNew(a)
-
-  while true:
-    var t = o.nextToken()
-    echo t[]
-    # echo t.tokenType
-    # echo t.literal
-    # echo o[]
-
-    if t.tokenType == EOF:
-      break
-
