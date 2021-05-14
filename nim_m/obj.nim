@@ -5,6 +5,8 @@ const
   INTEGER_OBJ* = "INTEGER"
   BOOLEAN_OBJ* = "BOOLEAN"
   NULL_OBJ* = "NULL"
+  ERROR_OBJ* = "ERROR"
+  RETURN_VALUE_OBJ* = "RETURN_VALUE"
 
 
 
@@ -44,3 +46,23 @@ method Type*(self: Null): string =
 
 method Inspect*(self: Null): string =
   result = "null"
+
+
+type ReturnValue* = ref object of Obj
+  value*: Obj
+
+method Type*(self: ReturnValue): string =
+  result = RETURN_VALUE_OBJ
+
+method Inspect*(self: ReturnValue): string =
+  result = self.value.Inspect()
+
+
+type Error* = ref object of Obj
+  message*: string
+
+method Type*(self: Error): string =
+  result = ERROR_OBJ
+
+method Inspect*(self: Error): string =
+  result = fmt"ERROR: {self.message}"
