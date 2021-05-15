@@ -8,6 +8,7 @@ BOOLEAN_OBJ = "BOOLEAN"
 RETURN_VALUE_OBJ = "RETURN_VALUE"
 FUNCTION_OBJ = "FUNCTION"
 STRING_OBJ = "STRING"
+BUILTIN_OBJ = "BUILTIN"
 
 
 class Object(metaclass=ABCMeta):
@@ -156,6 +157,22 @@ class String(Object):
 
     def __str__(self):
         return "String(Object)"
+
+
+class Builtin(Object):
+    """組み込み関数 ラップ"""
+
+    def __init__(self, fn):
+        self.fn = fn
+
+    def Type(self):
+        return BUILTIN_OBJ
+
+    def Inspect(self):
+        return "builtin function"
+
+    def __str__(self):
+        return "Builtin(Object)"
 
 
 if __name__ == "__main__":

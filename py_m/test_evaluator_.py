@@ -270,6 +270,23 @@ x
         assert type(evaluated) is object_.String
         assert evaluated.value == "Hello World!"
 
+    def test_TestBuiltinFunctions(self):
+        tests = [
+            ('''len("")''', 0),
+            ('''len("four")''', 4),
+            ('''len("hello world")''', 11),
+            ('''len(1)''', "argument to `len` not supported, got INTEGER"),
+            ('''len("one", "two")''', "wrong number of arguments. got=2, want=1"),
+        ]
+        for v in tests:
+            evaluated = self.test_Eval(v[0])
+
+            if type(v[1]) is int:
+                assert self.test_IntegerObject(evaluated, v[1])
+            elif type(v[1]) is str:
+                assert type(evaluated) is object_.Error
+                assert evaluated.message == v[1]
+
 
 # python -m unittest test_evaluator_.TestEvaluator.test_StringConcatenation
-# python -m unittest test_evaluator_.TestEvaluator.test_ErrorHandling
+# python -m unittest test_evaluator_.TestEvaluator.test_TestBuiltinFunctions

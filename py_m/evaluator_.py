@@ -1,6 +1,7 @@
 import ast_
 import object_
 import env_
+import builtin_
 
 NULL = object_.Null()
 TRUE = object_.Boolean(True)
@@ -199,9 +200,14 @@ def isError(obj):
 
 def evalIdentifier(node, env):
     val = env.Get(node.value)
-    if val is None:
-        return newError("identifier not found: " + node.value)
-    return val
+    if val is not None:
+        return val
+
+    builtin = builtin_.builtins.get(node.value)
+    if builtin is not None:
+        return builtin
+
+    return newError("identifier not found: " + node.value)
 
 
 def evalExpressions(exps, env):
@@ -215,12 +221,14 @@ def evalExpressions(exps, env):
 
 
 def applyFunction(fn, args):
-    if type(fn) is not object_.Function:
+    if type(fn) is object_.Function:
+        extendedEnv = extendFunctionEnv(fn, args)
+        evaluated = Eval(fn.body, extendedEnv)
+        return unwrapReturnValue(evaluated)
+    elif type(fn) is object_.Builtin:
+        return fn.fn(args)
+    else:
         return newError("not a function: ", fn.Type())
-
-    extendedEnv = extendFunctionEnv(fn, args)
-    evaluated = Eval(fn.body, extendedEnv)
-    return unwrapReturnValue(evaluated)
 
 
 def extendFunctionEnv(fn, args):
