@@ -2,7 +2,6 @@ import lexer
 import parser
 import obj
 import eval
-import env
 
 
 const PROMPT = ">> "
@@ -17,7 +16,7 @@ proc printParserErrors(e: seq[string]) =
 
 proc start*() =
 
-  let e = env.NewEnvironment()
+  let e = obj.NewEnvironment()
 
   while true:
     stdout.write PROMPT

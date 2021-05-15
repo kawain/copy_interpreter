@@ -4,10 +4,9 @@ import unittest
 import strformat
 import lexer
 import parser
-# import ast
+import ast
 import obj
 import eval
-import env
 
 
 type
@@ -24,7 +23,7 @@ proc testEval(input: string): obj.Obj =
   let l = lexer.LexerNew(input)
   let p = parser.ParserNew(l)
   let program = p.parseProgram()
-  let e = env.NewEnvironment()
+  let e = obj.NewEnvironment()
 
   return eval.Eval(program, e)
 
@@ -228,6 +227,34 @@ if (10 > 1) {
       ("let a = 5 * 5; a;", 25),
       ("let a = 5; let b = a; b;", 5),
       ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+    ]
+
+    for v in tests:
+      let evaluated = testEval(v[0])
+      check(testIntegerObject(evaluated, v[1]))
+
+
+  test "TestFunctionObject":
+    let input = "fn(x) { x + 2; };"
+    let evaluated = testEval(input)
+    let fn = obj.Function(evaluated)
+    check(len(fn.parameters) == 1)
+    # Identifier にキャスト
+    let ide = Identifier(fn.parameters[0])
+    check(ide.toString() == "x")
+    # BlockStatement にキャスト
+    let body = BlockStatement(fn.body)
+    check(body.toString() == "(x + 2)")
+
+
+  test "TestFunctionApplication":
+    let tests = [
+      ("let identity = fn(x) { x; }; identity(5);", 5),
+      ("let identity = fn(x) { return x; }; identity(5);", 5),
+      ("let double = fn(x) { x * 2; }; double(5);", 10),
+      ("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+      ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+      ("fn(x) { x; }(5)", 5),
     ]
 
     for v in tests:

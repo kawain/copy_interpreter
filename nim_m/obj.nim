@@ -1,4 +1,7 @@
+import strutils
 import strformat
+import tables
+import ast
 
 
 const
@@ -7,10 +10,41 @@ const
   NULL_OBJ* = "NULL"
   ERROR_OBJ* = "ERROR"
   RETURN_VALUE_OBJ* = "RETURN_VALUE"
+  FUNCTION_OBJ* = "FUNCTION"
 
 
+type
+  Obj* = ref object of RootObj
 
-type Obj* = ref object of RootObj
+  Environment* = ref object
+    store*: Table[string, Obj]
+    outer*: Environment
+
+
+proc get*(self: Environment, name: string): (Obj, bool) =
+  var t: (Obj, bool)
+  if self.store.hasKey(name):
+    t = (self.store[name], true)
+  else:
+    t = (nil, false)
+    if self.outer != nil:
+      t = self.outer.get(name)
+  return t
+
+
+proc set*(self: Environment, name: string, val: Obj): Obj =
+  self.store[name] = val
+  return val
+
+
+proc NewEnvironment*(): Environment =
+  return Environment(store: initTable[string, Obj]())
+
+
+proc NewEnclosedEnvironment*(outer: Environment): Environment =
+  result = NewEnvironment()
+  result.outer = outer
+
 
 method Type*(self: Obj): string{.base.} =
   result = ""
@@ -66,3 +100,25 @@ method Type*(self: Error): string =
 
 method Inspect*(self: Error): string =
   result = fmt"ERROR: {self.message}"
+
+
+type Function* = ref object of Obj
+  parameters*: seq[ast.Identifier]
+  body*: ast.BlockStatement
+  env*: Environment
+
+method Type*(self: Function): string =
+  result = FUNCTION_OBJ
+
+method Inspect*(self: Function): string =
+  var params = newSeq[string]()
+
+  for v in self.parameters:
+    params.add(v.toString())
+
+  result = "fn"
+  result.add("(")
+  result.add(params.join(", "))
+  result.add(") {\n")
+  result.add(self.body.toString())
+  result.add("\n}")

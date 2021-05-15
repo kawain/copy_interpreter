@@ -1,10 +1,10 @@
+import strformat
 import obj
 import ast
-import env
-import strformat
 
-proc Eval*(node: ast.Node, e: env.Environment): obj.Obj
-proc evalProgram(program: ast.Program, e: env.Environment): obj.Obj
+
+proc Eval*(node: ast.Node, e: obj.Environment): obj.Obj
+proc evalProgram(program: ast.Program, e: obj.Environment): obj.Obj
 proc nativeBoolToBooleanObject(input: bool): obj.Boolean
 proc evalPrefixExpression(operator: string, right: obj.Obj): obj.Obj
 proc evalBangOperatorExpression(right: obj.Obj): obj.Obj
@@ -15,12 +15,16 @@ proc evalInfixExpression(
 proc evalIntegerInfixExpression(
   operator: string, left: obj.Obj, right: obj.Obj
 ): obj.Obj
-proc evalBlockStatement(b: ast.BlockStatement, e: env.Environment): obj.Obj
-proc evalIfExpression(ie: ast.IfExpression, e: env.Environment): obj.Obj
+proc evalBlockStatement(b: ast.BlockStatement, e: obj.Environment): obj.Obj
+proc evalIfExpression(ie: ast.IfExpression, e: obj.Environment): obj.Obj
 proc isError(obj: obj.Obj): bool
 proc isTruthy(obj: obj.Obj): bool
 proc newError(e: string): obj.Error
-proc evalIdentifier(node: ast.Identifier, e: env.Environment): obj.Obj
+proc evalIdentifier(node: ast.Identifier, e: obj.Environment): obj.Obj
+proc evalExpressions(exps: seq[ast.Expression], e: obj.Environment): seq[obj.Obj]
+proc applyFunction(fn: obj.Obj, args: seq[obj.Obj]): obj.Obj
+proc extendFunctionEnv(fn: obj.Function, args: seq[obj.Obj]): obj.Environment
+proc unwrapReturnValue(o: obj.Obj): obj.Obj
 
 
 let
@@ -29,7 +33,7 @@ let
   FALSE* = obj.Boolean(value: false)
 
 
-proc Eval*(node: Node, e: env.Environment): obj.Obj =
+proc Eval*(node: Node, e: obj.Environment): obj.Obj =
   if node of ast.Program:
     let node2 = ast.Program(node)
     return evalProgram(node2, e)
@@ -78,11 +82,25 @@ proc Eval*(node: Node, e: env.Environment): obj.Obj =
   elif node of ast.Identifier:
     let node2 = ast.Identifier(node)
     return evalIdentifier(node2, e)
+  elif node of ast.FunctionLiteral:
+    let node2 = ast.FunctionLiteral(node)
+    let params = node2.parameters
+    let body = node2.body
+    return obj.Function(parameters: params, env: e, body: body)
+  elif node of ast.CallExpression:
+    let node2 = ast.CallExpression(node)
+    let fn = Eval(node2.function, e)
+    if isError(fn):
+      return fn
+    let args = evalExpressions(node2.arguments, e)
+    if len(args) == 1 and isError(args[0]):
+      return args[0]
+    return applyFunction(fn, args)
 
   return nil
 
 
-proc evalProgram(program: ast.Program, e: env.Environment): obj.Obj =
+proc evalProgram(program: ast.Program, e: obj.Environment): obj.Obj =
   for v in program.statements:
     result = Eval(v, e)
     if result of obj.ReturnValue:
@@ -172,7 +190,7 @@ proc evalIntegerInfixExpression(
     return newError(fmt"unknown operator: {left.Type()} {operator} {right.Type()}")
 
 
-proc evalBlockStatement(b: ast.BlockStatement, e: env.Environment): obj.Obj =
+proc evalBlockStatement(b: ast.BlockStatement, e: obj.Environment): obj.Obj =
   for v in b.statements:
     result = Eval(v, e)
     if result != nil:
@@ -183,7 +201,7 @@ proc evalBlockStatement(b: ast.BlockStatement, e: env.Environment): obj.Obj =
   return result
 
 
-proc evalIfExpression(ie: ast.IfExpression, e: env.Environment): obj.Obj =
+proc evalIfExpression(ie: ast.IfExpression, e: obj.Environment): obj.Obj =
   let condition = Eval(ie.condition, e)
   if isError(condition):
     return condition
@@ -217,9 +235,42 @@ proc newError(e: string): Error =
   return Error(message: e)
 
 
-proc evalIdentifier(node: ast.Identifier, e: env.Environment): obj.Obj =
+proc evalIdentifier(node: ast.Identifier, e: obj.Environment): obj.Obj =
   let tup = e.get(node.value)
   if tup[1]:
     return tup[0]
   return newError(fmt"identifier not found: {node.value}")
 
+
+proc evalExpressions(exps: seq[ast.Expression], e: obj.Environment): seq[obj.Obj] =
+  result = newSeq[obj.Obj]()
+  for v in exps:
+    let evaluated = Eval(v, e)
+    if isError(evaluated):
+      result.add(evaluated)
+      return result
+    result.add(evaluated)
+
+
+proc applyFunction(fn: obj.Obj, args: seq[obj.Obj]): obj.Obj =
+  if fn of obj.Function:
+    let fn2 = obj.Function(fn)
+    let extendedEnv = extendFunctionEnv(fn2, args)
+    let evaluated = Eval(fn2.body, extendedEnv)
+    return unwrapReturnValue(evaluated)
+  else:
+    return newError(fmt"not a function: {fn.Type()}")
+
+
+proc extendFunctionEnv(fn: obj.Function, args: seq[obj.Obj]): obj.Environment =
+  let env = obj.NewEnclosedEnvironment(fn.env)
+  for paramIdx, param in fn.parameters:
+    discard env.set(param.value, args[paramIdx])
+  return env
+
+
+proc unwrapReturnValue(o: obj.Obj): obj.Obj =
+  if o of obj.ReturnValue:
+    let rv = obj.ReturnValue(o)
+    return rv.value
+  return o
