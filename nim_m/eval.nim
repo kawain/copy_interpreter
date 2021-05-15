@@ -1,4 +1,5 @@
 import strformat
+import tables
 import obj
 import ast
 
@@ -36,6 +37,23 @@ let
   NULL* = obj.Null()
   TRUE* = obj.Boolean(value: true)
   FALSE* = obj.Boolean(value: false)
+
+
+# 組み込み関数
+var builtins = initTable[string, obj.Builtin]()
+
+proc builtin_len(args: seq[obj.Obj]): obj.Obj =
+  if len(args) != 1:
+    return newError(fmt"wrong number of arguments. got={len(args)}, want=1")
+  if args[0] of obj.String:
+    let arg = obj.String(args[0])
+    return obj.Integer(value: len(arg.value))
+
+  return newError(fmt"argument to `len` not supported, got {args[0].Type()}")
+
+builtins["len"] = obj.Builtin(fn: builtin_len)
+
+
 
 
 proc Eval*(node: Node, e: obj.Environment): obj.Obj =
@@ -250,6 +268,8 @@ proc evalIdentifier(node: ast.Identifier, e: obj.Environment): obj.Obj =
   let tup = e.get(node.value)
   if tup[1]:
     return tup[0]
+  if builtins.hasKey(node.value):
+    return builtins[node.value]
   return newError(fmt"identifier not found: {node.value}")
 
 
@@ -269,6 +289,9 @@ proc applyFunction(fn: obj.Obj, args: seq[obj.Obj]): obj.Obj =
     let extendedEnv = extendFunctionEnv(fn2, args)
     let evaluated = Eval(fn2.body, extendedEnv)
     return unwrapReturnValue(evaluated)
+  elif fn of obj.Builtin:
+    let fn2 = obj.Builtin(fn)
+    return fn2.fn(args)
   else:
     return newError(fmt"not a function: {fn.Type()}")
 

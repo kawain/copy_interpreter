@@ -12,6 +12,7 @@ const
   RETURN_VALUE_OBJ* = "RETURN_VALUE"
   FUNCTION_OBJ* = "FUNCTION"
   STRING_OBJ* = "STRING"
+  BUILTIN_OBJ* = "BUILTIN"
 
 
 type
@@ -20,6 +21,8 @@ type
   Environment* = ref object
     store*: Table[string, Obj]
     outer*: Environment
+
+  BuiltinFunction = proc(args: seq[Obj]): Obj
 
 
 proc get*(self: Environment, name: string): (Obj, bool) =
@@ -133,3 +136,13 @@ method Type*(self: String): string =
 
 method Inspect*(self: String): string =
   result = self.value
+
+
+type Builtin* = ref object of Obj
+  fn*: BuiltinFunction
+
+method Type*(self: Builtin): string =
+  result = BUILTIN_OBJ
+
+method Inspect*(self: Builtin): string =
+  result = "builtin function"

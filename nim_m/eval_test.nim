@@ -297,3 +297,37 @@ counter(0);
     let s = obj.String(evaluated)
     check(s.value == "Hello World!")
 
+
+  test "TestBuiltinFunctions":
+    let tests = [
+      (
+        """len("")""",
+        Interface(kind: "int", iVal: 0)
+      ),
+      (
+        """len("four")""",
+        Interface(kind: "int", iVal: 4)
+      ),
+      (
+        """len("hello world")""",
+        Interface(kind: "int", iVal: 11)
+      ),
+      (
+        """len(1)""",
+        Interface(kind: "str", sVal: "argument to `len` not supported, got INTEGER")
+      ),
+      (
+        """len("one", "two")""",
+        Interface(kind: "str", sVal: "wrong number of arguments. got=2, want=1")
+      ),
+    ]
+
+    for v in tests:
+      let evaluated = testEval(v[0])
+      let kind = v[1].kind
+      case kind
+      of "int":
+        check(testIntegerObject(evaluated, v[1].iVal))
+      of "str":
+        let errObj = obj.Error(evaluated)
+        check(errObj.message == v[1].sVal)
