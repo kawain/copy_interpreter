@@ -1,12 +1,13 @@
 # nim c -r eval_test.nim "TestReturnStatements"
 import unittest
-import strutils
+# import strutils
 import strformat
 import lexer
 import parser
-import ast
+# import ast
 import obj
 import eval
+import env
 
 
 type
@@ -23,7 +24,9 @@ proc testEval(input: string): obj.Obj =
   let l = lexer.LexerNew(input)
   let p = parser.ParserNew(l)
   let program = p.parseProgram()
-  return eval.Eval(program)
+  let e = env.NewEnvironment()
+
+  return eval.Eval(program, e)
 
 
 proc testIntegerObject(o: obj.Obj, expected: int): bool =
@@ -208,8 +211,25 @@ if (10 > 1) {
         "true + false + true + false;",
         "unknown operator: BOOLEAN + BOOLEAN"
       ),
+      (
+        "foobar",
+        "identifier not found: foobar",
+      ),
     ]
     for v in tests:
       let e = testEval(v[0])
       let errObj = obj.Error(e)
       check(errObj.message == v[1])
+
+
+  test "TestLetStatements":
+    let tests = [
+      ("let a = 5; a;", 5),
+      ("let a = 5 * 5; a;", 25),
+      ("let a = 5; let b = a; b;", 5),
+      ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+    ]
+
+    for v in tests:
+      let evaluated = testEval(v[0])
+      check(testIntegerObject(evaluated, v[1]))

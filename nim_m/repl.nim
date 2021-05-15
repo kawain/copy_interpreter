@@ -2,6 +2,8 @@ import lexer
 import parser
 import obj
 import eval
+import env
+
 
 const PROMPT = ">> "
 
@@ -14,6 +16,9 @@ proc printParserErrors(e: seq[string]) =
 
 
 proc start*() =
+
+  let e = env.NewEnvironment()
+
   while true:
     stdout.write PROMPT
     let input = readLine(stdin)
@@ -24,6 +29,6 @@ proc start*() =
       printParserErrors(p.Errors())
       continue
 
-    let evaluated = eval.Eval(program)
+    let evaluated = eval.Eval(program, e)
     if evaluated != nil:
       echo evaluated.Inspect()
