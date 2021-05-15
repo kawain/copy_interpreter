@@ -574,3 +574,13 @@ suite "parser_test":
         else:
           echo "NG"
 
+
+  test "TestStringLiteralExpression":
+    let input = "\"hello world\";"
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    check(checkParserErrors(l, p))
+    let stm = ast.ExpressionStatement(program.statements[0])
+    let lit = ast.StringLiteral(stm.expression)
+    check(lit.value == "hello world")

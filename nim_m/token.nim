@@ -30,6 +30,7 @@ type
     IF        # "IF"
     ELSE      # "ELSE"
     RETURN    # "RETURN"
+    STRING    # "foobar"
 
   Token* = ref object
     tokenType*: TokenType

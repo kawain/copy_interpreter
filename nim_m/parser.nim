@@ -73,7 +73,7 @@ proc parseFunctionLiteral(self: Parser): Expression
 proc parseFunctionParameters(self: Parser): seq[Identifier]
 proc parseCallExpression(self: Parser, f: Expression): Expression
 proc parseCallArguments(self: Parser): seq[Expression]
-
+proc parseStringLiteral(self: Parser): Expression
 
 
 proc ParserNew*(lex: Lexer): Parser =
@@ -91,6 +91,7 @@ proc ParserNew*(lex: Lexer): Parser =
   result.prefixParseFns[LPAREN] = parseGroupedExpression
   result.prefixParseFns[IF] = parseIfExpression
   result.prefixParseFns[FUNCTION] = parseFunctionLiteral
+  result.prefixParseFns[STRING] = parseStringLiteral
 
   result.infixParseFns[PLUS] = parseInfixExpression
   result.infixParseFns[MINUS] = parseInfixExpression
@@ -400,6 +401,9 @@ proc parseCallArguments(self: Parser): seq[Expression] =
 
   return result
 
+
+proc parseStringLiteral(self: Parser): Expression =
+  return ast.StringLiteral(token: self.curToken, value: self.curToken.literal)
 
 
 

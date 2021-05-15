@@ -44,6 +44,14 @@ proc readNumber(lex: Lexer): string =
     lex.readChar()
   lex.input[position..<lex.position]
 
+proc readString(lex: Lexer): string =
+  let position = lex.position + 1
+  while true:
+    lex.readChar()
+    if lex.ch == '"' or lex.ch == '\0':
+      break
+  return lex.input[position..<lex.position]
+
 proc LexerNew*(input: string): Lexer =
   result = new Lexer
   result.input = input
@@ -109,6 +117,9 @@ proc nextToken*(lex: Lexer): Token =
   of ')':
     result.tokenType = RPAREN
     result.literal = $lex.ch
+  of '"':
+    result.tokenType = STRING
+    result.literal = lex.readString()
   of '\0':
     result.tokenType = EOF
     result.literal = ""

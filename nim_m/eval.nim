@@ -25,6 +25,11 @@ proc evalExpressions(exps: seq[ast.Expression], e: obj.Environment): seq[obj.Obj
 proc applyFunction(fn: obj.Obj, args: seq[obj.Obj]): obj.Obj
 proc extendFunctionEnv(fn: obj.Function, args: seq[obj.Obj]): obj.Environment
 proc unwrapReturnValue(o: obj.Obj): obj.Obj
+proc evalStringInfixExpression(
+  operator: string,
+  left: obj.Obj,
+  right: obj.Obj
+): obj.Obj
 
 
 let
@@ -96,6 +101,9 @@ proc Eval*(node: Node, e: obj.Environment): obj.Obj =
     if len(args) == 1 and isError(args[0]):
       return args[0]
     return applyFunction(fn, args)
+  elif node of ast.StringLiteral:
+    let node2 = ast.StringLiteral(node)
+    return obj.String(value: node2.value)
 
   return nil
 
@@ -157,6 +165,9 @@ proc evalInfixExpression(
     return nativeBoolToBooleanObject(left != right)
   elif left.Type() != right.Type():
     return newError(fmt"type mismatch: {left.Type()} {operator} {right.Type()}")
+  elif left.Type() == obj.STRING_OBJ and right.Type() == obj.STRING_OBJ:
+    return evalStringInfixExpression(operator, left, right)
+
   else:
     return newError(fmt"unknown operator: {left.Type()} {operator} {right.Type()}")
 
@@ -274,3 +285,18 @@ proc unwrapReturnValue(o: obj.Obj): obj.Obj =
     let rv = obj.ReturnValue(o)
     return rv.value
   return o
+
+
+proc evalStringInfixExpression(
+  operator: string,
+  left: obj.Obj,
+  right: obj.Obj
+): obj.Obj =
+
+  if operator != "+":
+    return newError(fmt"unknown operator: {left.Type()} {operator} {right.Type()}")
+
+  let leftVal = obj.String(left).value
+  let rightVal = obj.String(right).value
+  return obj.String(value: leftVal & rightVal)
+

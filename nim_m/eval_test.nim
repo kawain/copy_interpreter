@@ -214,6 +214,10 @@ if (10 > 1) {
         "foobar",
         "identifier not found: foobar",
       ),
+      (
+        """"Hello" - "World"""",
+        "unknown operator: STRING - STRING",
+      ),
     ]
     for v in tests:
       let e = testEval(v[0])
@@ -239,11 +243,11 @@ if (10 > 1) {
     let evaluated = testEval(input)
     let fn = obj.Function(evaluated)
     check(len(fn.parameters) == 1)
-    # Identifier にキャスト
-    let ide = Identifier(fn.parameters[0])
+    # Identifier
+    let ide = fn.parameters[0]
     check(ide.toString() == "x")
-    # BlockStatement にキャスト
-    let body = BlockStatement(fn.body)
+    # BlockStatement
+    let body = fn.body
     check(body.toString() == "(x + 2)")
 
 
@@ -260,3 +264,36 @@ if (10 > 1) {
     for v in tests:
       let evaluated = testEval(v[0])
       check(testIntegerObject(evaluated, v[1]))
+
+
+  test "Test p171":
+    let input = """
+let counter = fn(x) {
+  if(x > 100){
+    return true;
+  } else {
+    let foobar = 9999;
+    counter(x + 1);
+  }
+};
+
+counter(0);
+
+    """
+    let evaluated = testEval(input)
+    check(evaluated.Inspect() == "true")
+
+
+  test "TestStringLiteral":
+    let input = """"Hello World!""""
+    let evaluated = testEval(input)
+    let s = obj.String(evaluated)
+    check(s.value == "Hello World!")
+
+
+  test "TestStringConcatenation":
+    let input = """"Hello" + " " + "World!""""
+    let evaluated = testEval(input)
+    let s = obj.String(evaluated)
+    check(s.value == "Hello World!")
+

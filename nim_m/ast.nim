@@ -220,6 +220,16 @@ method toString*(self: CallExpression): string =
   result.add(")")
 
 
+type StringLiteral* = ref object of Expression
+  token*: Token
+  value*: string
+
+method tokenLiteral*(self: StringLiteral): string =
+  self.token.literal
+
+method toString*(self: StringLiteral): string =
+  self.token.literal
+
 
 
 

@@ -11,6 +11,7 @@ const
   ERROR_OBJ* = "ERROR"
   RETURN_VALUE_OBJ* = "RETURN_VALUE"
   FUNCTION_OBJ* = "FUNCTION"
+  STRING_OBJ* = "STRING"
 
 
 type
@@ -122,3 +123,13 @@ method Inspect*(self: Function): string =
   result.add(") {\n")
   result.add(self.body.toString())
   result.add("\n}")
+
+
+type String* = ref object of Obj
+  value*: string
+
+method Type*(self: String): string =
+  result = STRING_OBJ
+
+method Inspect*(self: String): string =
+  result = self.value

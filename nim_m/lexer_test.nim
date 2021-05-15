@@ -30,6 +30,8 @@ if (5 < 10) {
 10 == 10;
 10 != 9;
 3.14
+"foobar"
+"foo bar"
 
 """
     let tests = [
@@ -107,8 +109,8 @@ if (5 < 10) {
       (TokenType.INT, "9"),
       (TokenType.SEMICOLON, ";"),
       (TokenType.FLOAT, "3.14"),
-      # (TokenType.STRING, "foobar"),
-      # (TokenType.STRING, "foo bar"),
+      (TokenType.STRING, "foobar"),
+      (TokenType.STRING, "foo bar"),
       # (TokenType.LBRACKET, "["),
       # (TokenType.INT, "1"),
       # (TokenType.COMMA, ","),
