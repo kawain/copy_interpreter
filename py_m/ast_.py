@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+import token_
 
 
 class Node(metaclass=ABCMeta):
@@ -388,6 +389,36 @@ class StringLiteral(Expression):
 
     def __str__(self):
         return "StringLiteral(Expression)"
+
+
+class ArrayLiteral(Expression):
+    """配列リテラル"""
+
+    def __init__(self, token=None, elements=[]):
+        # the '[' token
+        self.token: token_.TokenType = token
+        # []Expression
+        self.elements: list[Expression] = elements
+
+    def token_literal(self):
+        return self.token.literal
+
+    def expression_node(self):
+        pass
+
+    def string(self):
+        el = []
+        for v in self.elements:
+            el.append(v.string())
+
+        out = "["
+        out += ", ".join(el)
+        out += "]"
+
+        return out
+
+    def __str__(self):
+        return "ArrayLiteral(Expression)"
 
 
 if __name__ == "__main__":

@@ -231,6 +231,24 @@ method toString*(self: StringLiteral): string =
   self.token.literal
 
 
+type ArrayLiteral* = ref object of Expression
+  # the '[' token
+  token*: Token
+  elements*: seq[Expression]
+
+method tokenLiteral*(self: ArrayLiteral): string =
+  self.token.literal
+
+method toString*(self: ArrayLiteral): string =
+  var el = newSeq[string]()
+  for v in self.elements:
+    el.add(v.toString())
+
+  result = "["
+  result.add(el.join(", "))
+  result.add("]")
+
+
 
 
 

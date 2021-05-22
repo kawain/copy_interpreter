@@ -48,6 +48,7 @@ class Parser:
         self.prefix_parse_fns[TokenType.IF] = self.parse_if_expression
         self.prefix_parse_fns[TokenType.FUNCTION] = self.parse_function_literal
         self.prefix_parse_fns[TokenType.STRING] = self.parse_string_literal
+        self.prefix_parse_fns[TokenType.LBRACKET] = self.parse_array_literal
         # 中置構文解析関数追加
         self.infix_parse_fns[TokenType.PLUS] = self.parse_infix_expression
         self.infix_parse_fns[TokenType.MINUS] = self.parse_infix_expression
@@ -323,7 +324,7 @@ class Parser:
 
     def parse_call_expression(self, function):
         exp = ast_.CallExpression(token=self.cur_token, function=function)
-        exp.arguments = self.parse_call_arguments()
+        exp.arguments = self.parse_expression_list(TokenType.RPAREN)
         return exp
 
     def parse_call_arguments(self):
@@ -348,6 +349,31 @@ class Parser:
 
     def parse_string_literal(self):
         return ast_.StringLiteral(self.cur_token, self.cur_token.literal)
+
+    def parse_array_literal(self) -> ast_.Expression:
+        array = ast_.ArrayLiteral(self.cur_token, [])
+        array.elements = self.parse_expression_list(TokenType.RBRACKET)
+        return array
+
+    def parse_expression_list(self, end: TokenType) -> list[ast_.Expression]:
+        args: list[ast_.Expression] = []
+
+        if self.peek_token_is(end):
+            self.next_token()
+            return args
+
+        self.next_token()
+        args.append(self.parse_expression(priority["LOWEST"]))
+
+        while self.peek_token_is(TokenType.COMMA):
+            self.next_token()
+            self.next_token()
+            args.append(self.parse_expression(priority["LOWEST"]))
+
+        if not self.expect_peek(end):
+            return None
+
+        return args
 
 
 if __name__ == "__main__":

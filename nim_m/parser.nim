@@ -72,8 +72,10 @@ proc parseBlockStatement(self: Parser): BlockStatement
 proc parseFunctionLiteral(self: Parser): Expression
 proc parseFunctionParameters(self: Parser): seq[Identifier]
 proc parseCallExpression(self: Parser, f: Expression): Expression
-proc parseCallArguments(self: Parser): seq[Expression]
+# proc parseCallArguments(self: Parser): seq[Expression]
 proc parseStringLiteral(self: Parser): Expression
+proc parseArrayLiteral(self: Parser): Expression
+proc parseExpressionList(self: Parser, ends: token.TokenType): seq[ast.Expression]
 
 
 proc ParserNew*(lex: Lexer): Parser =
@@ -92,6 +94,7 @@ proc ParserNew*(lex: Lexer): Parser =
   result.prefixParseFns[IF] = parseIfExpression
   result.prefixParseFns[FUNCTION] = parseFunctionLiteral
   result.prefixParseFns[STRING] = parseStringLiteral
+  result.prefixParseFns[LBRACKET] = parseArrayLiteral
 
   result.infixParseFns[PLUS] = parseInfixExpression
   result.infixParseFns[MINUS] = parseInfixExpression
@@ -377,33 +380,62 @@ proc parseFunctionParameters(self: Parser): seq[Identifier] =
 
 proc parseCallExpression(self: Parser, f: Expression): Expression =
   let exp = CallExpression(token: self.curToken, function: f)
-  exp.arguments = self.parseCallArguments()
+  exp.arguments = self.parseExpressionList(token.RPAREN)
   exp
 
 
-proc parseCallArguments(self: Parser): seq[Expression] =
-  result = newSeq[Expression]()
+# proc parseCallArguments(self: Parser): seq[Expression] =
+#   result = newSeq[Expression]()
 
-  if self.peekTokenIs(RPAREN):
+#   if self.peekTokenIs(RPAREN):
+#     self.nextToken()
+#     return result
+
+#   self.nextToken()
+#   result.add(self.parseExpression(LOWEST))
+
+#   while self.peekTokenIs(COMMA):
+#     self.nextToken()
+#     self.nextToken()
+#     result.add(self.parseExpression(LOWEST))
+
+#   if not self.expectPeek(RPAREN):
+#     return @[]
+
+#   return result
+
+
+proc parseStringLiteral(self: Parser): Expression =
+  return ast.StringLiteral(token: self.curToken, value: self.curToken.literal)
+
+
+proc parseArrayLiteral(self: Parser): Expression =
+  let arr = ast.ArrayLiteral(token: self.curToken)
+  arr.elements = self.parseExpressionList(token.RBRACKET)
+  return arr
+
+
+proc parseExpressionList(
+  self: Parser,
+  ends: token.TokenType
+): seq[ast.Expression] =
+  result = newSeq[ast.Expression]()
+
+  if self.peekTokenIs(ends):
     self.nextToken()
     return result
 
   self.nextToken()
   result.add(self.parseExpression(LOWEST))
 
-  while self.peekTokenIs(COMMA):
+  while self.peekTokenIs(token.COMMA):
     self.nextToken()
     self.nextToken()
     result.add(self.parseExpression(LOWEST))
 
-  if not self.expectPeek(RPAREN):
+  if not self.expectPeek(ends):
     return @[]
 
-  return result
-
-
-proc parseStringLiteral(self: Parser): Expression =
-  return ast.StringLiteral(token: self.curToken, value: self.curToken.literal)
 
 
 

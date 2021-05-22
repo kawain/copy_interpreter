@@ -584,3 +584,42 @@ suite "parser_test":
     let stm = ast.ExpressionStatement(program.statements[0])
     let lit = ast.StringLiteral(stm.expression)
     check(lit.value == "hello world")
+
+
+  test "TestParsingEmptyArrayLiterals":
+    let input = "[]"
+
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    check(checkParserErrors(l, p))
+    check(len(program.statements) == 1)
+    let stm = ast.ExpressionStatement(program.statements[0])
+    let arr = ast.ArrayLiteral(stm.expression)
+    check(len(arr.elements) == 0)
+
+
+  test "TestParsingArrayLiterals":
+    let input = "[1, 2 * 2, 3 + 3]"
+
+    let l = LexerNew(input)
+    let p = ParserNew(l)
+    let program = p.parseProgram()
+    check(checkParserErrors(l, p))
+    check(len(program.statements) == 1)
+    let stm = ast.ExpressionStatement(program.statements[0])
+    let arr = ast.ArrayLiteral(stm.expression)
+    check(len(arr.elements) == 3)
+
+    check(testIntegerLiteral(arr.elements[0], 1))
+    check(testInfixExpression(
+      arr.elements[1],
+      Interface(kind: "int", iVal: 2), "*", Interface(kind: "int", iVal: 2))
+    )
+    check(testInfixExpression(
+      arr.elements[2],
+      Interface(kind: "int", iVal: 3), "+", Interface(kind: "int", iVal: 3))
+    )
+
+
+  # nim c -r parser_test.nim "TestParsingEmptyArrayLiterals"

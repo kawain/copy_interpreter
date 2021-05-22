@@ -1,4 +1,4 @@
-# python -m unittest test_parser_.TestParser.test_TestStringLiteralExpression
+# python -m unittest test_parser_.TestParser.test_let_statements
 import unittest
 import ast_
 import lexer_
@@ -16,7 +16,7 @@ class TestParser(unittest.TestCase):
             print(f"parser error: {v}")
         return False
 
-    def test_let_statement(self, s, name):
+    def check_let_statement(self, s, name):
         assert s.token_literal() == "let",\
             f"s.TokenLiteral not 'let'. got={s.token_literal()}"
         assert type(s) is ast_.LetStatement,\
@@ -27,7 +27,7 @@ class TestParser(unittest.TestCase):
             f"s.name not {name}. got={s.name.token_literal()}"
         return True
 
-    def test_integer_literal(self, il, value):
+    def check_integer_literal(self, il, value):
         assert type(il) is ast_.IntegerLiteral,\
             f"il not IntegerLiteral. got={type(il)}"
         assert il.value == value,\
@@ -36,7 +36,7 @@ class TestParser(unittest.TestCase):
             f"TokenLiteral not {value}. got={il.token_literal()}"
         return True
 
-    def test_identifier(self, exp, value):
+    def check_identifier(self, exp, value):
         assert type(exp) is ast_.Identifier,\
             f"exp not Identifier. got={type(exp)}"
         assert exp.value == value,\
@@ -45,7 +45,7 @@ class TestParser(unittest.TestCase):
             f"ident.TokenLiteral not {value}. got={exp.token_literal()}"
         return True
 
-    def test_boolean_literal(self, exp, value):
+    def check_boolean_literal(self, exp, value):
         assert type(exp) is ast_.Boolean,\
             f"exp not Boolean. got={type(exp)}"
         assert exp.value == value,\
@@ -55,13 +55,13 @@ class TestParser(unittest.TestCase):
             f"TokenLiteral not {value}. got={exp.token_literal()}"
         return True
 
-    def test_literal_expression(self, exp, expected):
+    def check_literal_expression(self, exp, expected):
         if type(expected) is int:
-            return self.test_integer_literal(exp, int(expected))
+            return self.check_integer_literal(exp, int(expected))
         elif type(expected) is str:
-            return self.test_identifier(exp, expected)
+            return self.check_identifier(exp, expected)
         elif type(expected) is bool:
-            return self.test_boolean_literal(exp, bool(expected))
+            return self.check_boolean_literal(exp, bool(expected))
         return False
 
     def test_let_statements(self):
@@ -81,9 +81,9 @@ class TestParser(unittest.TestCase):
                 f"program.Statements does not contain 1 statements. got={len(program.statements)}"
 
             stmt = program.statements[0]
-            assert self.test_let_statement(stmt, v[1])
+            assert self.check_let_statement(stmt, v[1])
             val = stmt.value
-            assert self.test_literal_expression(val, v[2])
+            assert self.check_literal_expression(val, v[2])
 
     def test_return_statements(self):
         tests = [
@@ -104,7 +104,7 @@ class TestParser(unittest.TestCase):
             stmt = program.statements[0]
             assert type(stmt) is ast_.ReturnStatement
             assert stmt.token_literal() == "return"
-            assert self.test_literal_expression(stmt.return_value, v[1])
+            assert self.check_literal_expression(stmt.return_value, v[1])
 
     def test_identifier_expression(self):
         input = "foobar;"
@@ -155,13 +155,13 @@ class TestParser(unittest.TestCase):
             exp = stmt.expression
             assert type(exp) is ast_.PrefixExpression
             assert exp.operator == v[1]
-            assert self.test_literal_expression(exp.right, v[2])
+            assert self.check_literal_expression(exp.right, v[2])
 
-    def testInfixExpression(self, exp, left, operator, right):
+    def check_infix_expression(self, exp, left, operator, right):
         assert type(exp) is ast_.InfixExpression
-        assert self.test_literal_expression(exp.left, left)
+        assert self.check_literal_expression(exp.left, left)
         assert exp.operator == operator
-        assert self.test_literal_expression(exp.right, right)
+        assert self.check_literal_expression(exp.right, right)
         return True
 
     def test_parsing_infix_expressions(self):
@@ -197,7 +197,7 @@ class TestParser(unittest.TestCase):
             assert type(stmt) is ast_.ExpressionStatement
             exp = stmt.expression
             assert type(exp) is ast_.InfixExpression
-            assert self.testInfixExpression(exp, v[1], v[2], v[3])
+            assert self.check_infix_expression(exp, v[1], v[2], v[3])
 
     def test_OperatorPrecedenceParsing(self):
         tests = [
@@ -345,11 +345,11 @@ class TestParser(unittest.TestCase):
         assert type(stmt) is ast_.ExpressionStatement
         exp = stmt.expression
         assert type(exp) is ast_.IfExpression
-        assert self.testInfixExpression(exp.condition, "x", "<", "y")
+        assert self.check_infix_expression(exp.condition, "x", "<", "y")
         assert len(exp.consequence.statements) == 1
         consequence = exp.consequence.statements[0]
         assert type(consequence) is ast_.ExpressionStatement
-        assert self.test_identifier(consequence.expression, "x")
+        assert self.check_identifier(consequence.expression, "x")
         assert exp.alternative is None
 
     def test_if_else_expression(self):
@@ -363,15 +363,15 @@ class TestParser(unittest.TestCase):
         assert type(stmt) is ast_.ExpressionStatement
         exp = stmt.expression
         assert type(exp) is ast_.IfExpression
-        assert self.testInfixExpression(exp.condition, "x", "<", "y")
+        assert self.check_infix_expression(exp.condition, "x", "<", "y")
         assert len(exp.consequence.statements) == 1
         consequence = exp.consequence.statements[0]
         assert type(consequence) is ast_.ExpressionStatement
-        assert self.test_identifier(consequence.expression, "x")
+        assert self.check_identifier(consequence.expression, "x")
         assert len(exp.alternative.statements) == 1
         alternative = exp.alternative.statements[0]
         assert type(alternative) is ast_.ExpressionStatement
-        assert self.test_identifier(alternative.expression, "y")
+        assert self.check_identifier(alternative.expression, "y")
 
     def test_function_literal_parsing(self):
         line = "fn(x, y) { x + y; }"
@@ -386,12 +386,12 @@ class TestParser(unittest.TestCase):
         function = stmt.expression
         assert type(function) is ast_.FunctionLiteral
         assert len(function.parameters) == 2
-        assert self.test_literal_expression(function.parameters[0], "x")
-        assert self.test_literal_expression(function.parameters[1], "y")
+        assert self.check_literal_expression(function.parameters[0], "x")
+        assert self.check_literal_expression(function.parameters[1], "y")
         assert len(function.body.statements) == 1
         body_stmt = function.body.statements[0]
         assert type(body_stmt) is ast_.ExpressionStatement
-        assert self.testInfixExpression(body_stmt.expression, "x", "+", "y")
+        assert self.check_infix_expression(body_stmt.expression, "x", "+", "y")
 
         for v in program.statements:
             print(v.string())
@@ -419,7 +419,7 @@ class TestParser(unittest.TestCase):
             assert type(function) is ast_.FunctionLiteral
             assert len(function.parameters) == len(v[1])
             for v2, v3 in zip(function.parameters, v[1]):
-                assert self.test_literal_expression(v2, v3)
+                assert self.check_literal_expression(v2, v3)
 
     def test_call_expression_parsing(self):
         input = "add(1, 2 * 3, 4 + 5);"
@@ -432,11 +432,11 @@ class TestParser(unittest.TestCase):
         assert type(stmt) is ast_.ExpressionStatement
         exp = stmt.expression
         assert type(exp) is ast_.CallExpression
-        assert self.test_identifier(exp.function, "add")
+        assert self.check_identifier(exp.function, "add")
         assert len(exp.arguments) == 3
-        assert self.test_literal_expression(exp.arguments[0], 1)
-        assert self.testInfixExpression(exp.arguments[1], 2, "*", 3)
-        assert self.testInfixExpression(exp.arguments[2], 4, "+", 5)
+        assert self.check_literal_expression(exp.arguments[0], 1)
+        assert self.check_infix_expression(exp.arguments[1], 2, "*", 3)
+        assert self.check_infix_expression(exp.arguments[2], 4, "+", 5)
 
     def test_call_expression_parameter_parsing(self):
         tests = [
@@ -454,7 +454,7 @@ class TestParser(unittest.TestCase):
             assert type(stmt) is ast_.ExpressionStatement
             exp = stmt.expression
             assert type(exp) is ast_.CallExpression
-            assert self.test_identifier(exp.function, v[1])
+            assert self.check_identifier(exp.function, v[1])
             assert len(exp.arguments) == len(v[2])
             for i, arg in enumerate(v[2]):
                 assert exp.arguments[i].string() == arg
@@ -604,7 +604,36 @@ return 838383;
         assert type(literal) is ast_.StringLiteral
         assert literal.value == "hello world"
 
+    def test_TestParsingEmptyArrayLiterals(self):
+        input = "[]"
+        lex = lexer_.Lexer(input)
+        obj = parser_.Parser(lex=lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        exp = stmt.expression
+        assert type(exp) is ast_.ArrayLiteral
+        assert len(exp.elements) == 0
 
-# python -m unittest test_parser_.TestParser.test_TestStringLiteralExpression
+    def test_TestParsingArrayLiterals(self):
+        input = "[1, 2 * 2, 3 + 3]"
+        lex = lexer_.Lexer(input)
+        obj = parser_.Parser(lex=lex)
+        program = obj.parse_program()
+        assert self.check_parser_errors(obj)
+        assert len(program.statements) == 1
+        stmt = program.statements[0]
+        assert type(stmt) is ast_.ExpressionStatement
+        exp = stmt.expression
+        assert type(exp) is ast_.ArrayLiteral
+        assert len(exp.elements) == 3
+        assert self.check_literal_expression(exp.elements[0], 1)
+        assert self.check_infix_expression(exp.elements[1], 2, "*", 2)
+        assert self.check_infix_expression(exp.elements[2], 3, "+", 3)
+
+
+# python -m unittest test_parser_.TestParser.test_TestParsingArrayLiterals
 if __name__ == '__main__':
     unittest.main()
