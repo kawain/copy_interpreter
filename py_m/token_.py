@@ -24,6 +24,8 @@ class TokenType(Enum):
     RPAREN = auto()    # ")"
     LBRACE = auto()    # "{"
     RBRACE = auto()    # "}"
+    LBRACKET = auto()  # "["
+    RBRACKET = auto()  # "]"
     FUNCTION = auto()  # "FUNCTION"
     LET = auto()      # "LET"
     TRUE = auto()     # "TRUE"

@@ -32,7 +32,7 @@ if (5 < 10) {
 3.14
 "foobar"
 "foo bar"
-
+[1, 2];
 """
     let tests = [
       (TokenType.LET, "let"),
@@ -111,12 +111,12 @@ if (5 < 10) {
       (TokenType.FLOAT, "3.14"),
       (TokenType.STRING, "foobar"),
       (TokenType.STRING, "foo bar"),
-      # (TokenType.LBRACKET, "["),
-      # (TokenType.INT, "1"),
-      # (TokenType.COMMA, ","),
-      # (TokenType.INT, "2"),
-      # (TokenType.RBRACKET, "]"),
-      # (TokenType.SEMICOLON, ";"),
+      (TokenType.LBRACKET, "["),
+      (TokenType.INT, "1"),
+      (TokenType.COMMA, ","),
+      (TokenType.INT, "2"),
+      (TokenType.RBRACKET, "]"),
+      (TokenType.SEMICOLON, ";"),
       # (TokenType.LBRACE, "{"),
       # (TokenType.STRING, "foo"),
       # (TokenType.COLON, ":"),

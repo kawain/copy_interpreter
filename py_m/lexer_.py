@@ -131,6 +131,12 @@ class Lexer:
         elif self.ch == '"':
             tok.token_type = TokenType.STRING
             tok.literal = self.read_string()
+        elif self.ch == "[":
+            tok.token_type = TokenType.LBRACKET
+            tok.literal = self.ch
+        elif self.ch == "]":
+            tok.token_type = TokenType.RBRACKET
+            tok.literal = self.ch
         elif self.ch == "":
             tok.token_type = TokenType.EOF
             tok.literal = ""

@@ -120,6 +120,12 @@ proc nextToken*(lex: Lexer): Token =
   of '"':
     result.tokenType = STRING
     result.literal = lex.readString()
+  of '[':
+    result.tokenType = LBRACKET
+    result.literal = $lex.ch
+  of ']':
+    result.tokenType = RBRACKET
+    result.literal = $lex.ch
   of '\0':
     result.tokenType = EOF
     result.literal = ""
